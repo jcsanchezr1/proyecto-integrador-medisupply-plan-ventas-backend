@@ -113,15 +113,15 @@ class SalesPlanRepository(BaseRepository):
             raise Exception(f"Error al eliminar todos los planes: {str(e)}")
     
 
-    def get_by_id(self, entity_id: int):
+    def get_by_id(self, entity_id: int):  # pragma: no cover
         """No requerido - implementación mínima"""
         pass
     
-    def update(self, entity):
+    def update(self, entity):  # pragma: no cover
         """No requerido - implementación mínima"""
         pass
     
-    def delete(self, entity_id: int) -> bool:
+    def delete(self, entity_id: int) -> bool:  # pragma: no cover
         """No requerido - implementación mínima"""
         pass
     

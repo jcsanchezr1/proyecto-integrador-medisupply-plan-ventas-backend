@@ -13,27 +13,28 @@ class BaseRepository(ABC):
         self.session = session
     
     @abstractmethod
-    def create(self, entity: Any) -> Any:
+    def create(self, entity: Any) -> Any:  # pragma: no cover
         """Crea una nueva entidad"""
         pass
     
     @abstractmethod
-    def get_by_id(self, entity_id: int) -> Optional[Any]:
+    def get_by_id(self, entity_id: int) -> Optional[Any]:  # pragma: no cover
         """Obtiene una entidad por ID"""
         pass
     
     @abstractmethod
-    def get_all(self) -> List[Any]:
+    def get_all(self) -> List[Any]:  # pragma: no cover
         """Obtiene todas las entidades"""
         pass
     
     @abstractmethod
-    def update(self, entity: Any) -> Any:
+    def update(self, entity: Any) -> Any:  # pragma: no cover
         """Actualiza una entidad"""
         pass
     
     @abstractmethod
-    def delete(self, entity_id: int) -> bool:
+    def delete(self, entity_id: int) -> bool:  # pragma: no cover
         """Elimina una entidad por ID"""
         pass
+
 

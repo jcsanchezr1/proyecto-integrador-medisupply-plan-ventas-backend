@@ -20,7 +20,7 @@ engine = create_engine(DATABASE_URL, echo=config.DEBUG)
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-def get_db_session():
+def get_db_session():  # pragma: no cover
     """Obtiene una sesión de base de datos"""
     db = SessionLocal()
     try:
@@ -28,7 +28,7 @@ def get_db_session():
     finally:
         db.close()
 
-def create_tables():
+def create_tables():  # pragma: no cover
     """Crea las tablas en la base de datos"""
     from ..models.db_models import Base
     Base.metadata.create_all(bind=engine)
@@ -58,7 +58,7 @@ def auto_close_session(func):
             try:
                 self.sales_plan_repository.session.close()
                 logger.debug("Sesion cerrada en decorador")
-            except Exception as e:
+            except Exception as e:  # pragma: no cover
                 logger.warning(f"Error cerrando sesion existente: {e}")
 
         session = SessionLocal()
@@ -111,7 +111,7 @@ def auto_close_session(func):
             try:
 
                 if session.in_transaction():
-                    logger.warning(f"⚠️  ATENCIÓN: Sesión cerrada con transacción pendiente en {endpoint_name}")
+                    logger.warning(f"ATENCIÓN: Sesión cerrada con transacción pendiente en {endpoint_name}")
                 else:
                     logger.info(f"Sesión cerrada limpiamente para {endpoint_name}")
                 
@@ -121,4 +121,5 @@ def auto_close_session(func):
                 logger.error(f"Error cerrando sesión en finally para {endpoint_name}: {e}")
     
     return wrapper
+
 

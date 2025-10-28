@@ -87,7 +87,7 @@ class SalesPlan(BaseModel):
         
 
         rounded = round(self.target_revenue, 2)
-        if abs(self.target_revenue - rounded) > 0.001:
+        if abs(self.target_revenue - rounded) > 0.0001:
             raise ValueError("El target_revenue debe tener máximo 2 decimales")
     
     def to_dict(self) -> dict:

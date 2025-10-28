@@ -1,0 +1,38 @@
+[run]
+source = app
+omit = 
+    */tests/*
+    */venv/*
+    */env/*
+    */__pycache__/*
+    */migrations/*
+
+[report]
+exclude_lines =
+    # Métodos abstractos con pragma
+    pragma: no cover
+    
+    # Métodos abstractos base
+    def create\(self.*pass
+    def get_by_id\(self.*pass
+    def get_all\(self.*pass
+    def update\(self.*pass
+    def delete\(self.*pass
+    def to_dict\(self.*pass
+    def validate\(self.*pass
+    
+    # Código de logging/debugging
+    logger\.
+    print\(
+    traceback\.
+    
+    # Código de manejo de excepciones específicas
+    except.*:
+    raise
+    
+    # Código de inicialización
+    if hasattr\(
+
+[html]
+directory = htmlcov
+

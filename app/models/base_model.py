@@ -9,12 +9,12 @@ class BaseModel(ABC):
     """Modelo base con métodos comunes"""
     
     @abstractmethod
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> Dict[str, Any]:  # pragma: no cover
         """Convierte el modelo a diccionario"""
         pass
     
     @abstractmethod
-    def validate(self) -> None:
+    def validate(self) -> None:  # pragma: no cover
         """Valida los datos del modelo"""
         pass
 

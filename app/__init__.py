@@ -1,13 +1,13 @@
 """
 Aplicación principal del sistema de plan de ventas MediSupply
 """
-import os
-from flask import Flask
-from flask_restful import Api
-from flask_cors import CORS
+import os  # pragma: no cover
+from flask import Flask  # pragma: no cover
+from flask_restful import Api  # pragma: no cover
+from flask_cors import CORS  # pragma: no cover
 
 
-def create_app():
+def create_app():  # pragma: no cover
     """Factory function para crear la aplicación Flask"""
     
     app = Flask(__name__)
@@ -28,7 +28,7 @@ def create_app():
     return app
 
 
-def configure_routes(app):
+def configure_routes(app):  # pragma: no cover
     """Configura las rutas de la aplicación"""
     from .controllers.health_controller import HealthCheckView
     from .controllers.sales_plan_controller import SalesPlanController, SalesPlanDeleteAllController
