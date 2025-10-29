@@ -80,6 +80,9 @@ class SalesPlanCreateController(BaseController, Resource):
             return self.error_response("Error de validación", str(e), 422)
         except SalesPlanBusinessLogicError as e:
             return self.error_response("Error de lógica de negocio", str(e), 422)
+        except ValueError as e:
+            logger.error(f"Error de validación: {str(e)}")
+            return self.error_response("Error de validación", str(e), 422)
         except Exception as e:
             logger.error(f"Error inesperado: {str(e)}")
             return self.error_response("Error interno del servidor", str(e), 500)
