@@ -10,6 +10,8 @@ from app.controllers.sales_plan_controller import SalesPlanController, SalesPlan
 from app.models.sales_plan import SalesPlan
 from app.exceptions.custom_exceptions import SalesPlanValidationError, SalesPlanBusinessLogicError
 
+TEST_SELLER_ID = '8f1b7d3f-4e3b-4f5e-9b2a-7d2a6b9f1c05'
+
 
 @pytest.fixture
 def app():
@@ -45,6 +47,7 @@ class TestSalesPlanCreateController:
             'start_date': '2025-01-01T00:00:00Z',
             'end_date': '2025-03-31T23:59:59Z',
             'client_id': 'a527df89-03f4-4c2c-9d4f-8e6b5c7d3a1b',
+            'seller_id': TEST_SELLER_ID,
             'target_revenue': 150000.50
         }):
             controller = SalesPlanCreateController()
@@ -60,6 +63,7 @@ class TestSalesPlanCreateController:
             'start_date': '2025-01-01T00:00:00Z',
             'end_date': '2025-03-31T23:59:59Z',
             'client_id': 'a527df89-03f4-4c2c-9d4f-8e6b5c7d3a1b',
+            'seller_id': TEST_SELLER_ID,
             'target_revenue': 150000.50
         }):
             controller = SalesPlanCreateController()
@@ -75,6 +79,7 @@ class TestSalesPlanCreateController:
             'name': 'Plan Q1 2025',
             'end_date': '2025-03-31T23:59:59Z',
             'client_id': 'a527df89-03f4-4c2c-9d4f-8e6b5c7d3a1b',
+            'seller_id': TEST_SELLER_ID,
             'target_revenue': 150000.50
         }):
             controller = SalesPlanCreateController()
@@ -89,6 +94,7 @@ class TestSalesPlanCreateController:
             'name': 'Plan Q1 2025',
             'start_date': '2025-01-01T00:00:00Z',
             'end_date': '2025-03-31T23:59:59Z',
+            'seller_id': TEST_SELLER_ID,
             'target_revenue': 150000.50
         }):
             controller = SalesPlanCreateController()
@@ -104,6 +110,7 @@ class TestSalesPlanCreateController:
             'start_date': 'invalid-date',
             'end_date': '2025-03-31T23:59:59Z',
             'client_id': 'a527df89-03f4-4c2c-9d4f-8e6b5c7d3a1b',
+            'seller_id': TEST_SELLER_ID,
             'target_revenue': 150000.50
         }):
             controller = SalesPlanCreateController()
@@ -119,6 +126,7 @@ class TestSalesPlanCreateController:
             'start_date': '2025-03-31T00:00:00Z',
             'end_date': '2025-01-01T00:00:00Z',
             'client_id': 'a527df89-03f4-4c2c-9d4f-8e6b5c7d3a1b',
+            'seller_id': TEST_SELLER_ID,
             'target_revenue': 150000.50
         }):
             controller = SalesPlanCreateController()
@@ -134,6 +142,7 @@ class TestSalesPlanCreateController:
             'start_date': '2025-01-01T00:00:00Z',
             'end_date': '2025-03-31T23:59:59Z',
             'client_id': 'a527df89-03f4-4c2c-9d4f-8e6b5c7d3a1b',
+            'seller_id': TEST_SELLER_ID,
             'target_revenue': -100
         }):
             controller = SalesPlanCreateController()
@@ -158,6 +167,7 @@ class TestSalesPlanCreateController:
             'start_date': '2025-01-01T00:00:00Z',
             'end_date': '2025-03-31T23:59:59Z',
             'client_id': 'a527df89-03f4-4c2c-9d4f-8e6b5c7d3a1b',
+            'seller_id': TEST_SELLER_ID,
             'target_revenue': 150000.50
         }):
             controller = SalesPlanCreateController()
@@ -184,6 +194,7 @@ class TestSalesPlanCreateController:
             'name': 'Plan Q1 2025',
             'start_date': '2025-01-01T00:00:00Z',
             'client_id': 'a527df89-03f4-4c2c-9d4f-8e6b5c7d3a1b',
+            'seller_id': TEST_SELLER_ID,
             'target_revenue': 150000.50
         }):
             controller = SalesPlanCreateController()
@@ -198,13 +209,30 @@ class TestSalesPlanCreateController:
             'name': 'Plan Q1 2025',
             'start_date': '2025-01-01T00:00:00Z',
             'end_date': '2025-03-31T23:59:59Z',
-            'client_id': 'a527df89-03f4-4c2c-9d4f-8e6b5c7d3a1b'
+            'client_id': 'a527df89-03f4-4c2c-9d4f-8e6b5c7d3a1b',
+            'seller_id': TEST_SELLER_ID
         }):
             controller = SalesPlanCreateController()
             
             response, status = controller.post()
             
             assert status == 422
+    
+    def test_post_missing_seller_id(self, app):
+        """Test crear plan sin seller_id"""
+        with app.test_request_context(json={
+            'name': 'Plan Q1 2025',
+            'start_date': '2025-01-01T00:00:00Z',
+            'end_date': '2025-03-31T23:59:59Z',
+            'client_id': 'a527df89-03f4-4c2c-9d4f-8e6b5c7d3a1b',
+            'target_revenue': 150000.50
+        }):
+            controller = SalesPlanCreateController()
+            
+            response, status = controller.post()
+            
+            assert status == 422
+            assert 'seller_id' in str(response.get('details', '')).lower() or 'seller_id' in str(response.get('error', '')).lower()
     
     @patch('app.controllers.sales_plan_create_controller.SalesPlanService')
     def test_post_business_logic_error(self, mock_service_class, app):
@@ -214,6 +242,7 @@ class TestSalesPlanCreateController:
             'start_date': '2025-01-01T00:00:00Z',
             'end_date': '2025-03-31T23:59:59Z',
             'client_id': 'a527df89-03f4-4c2c-9d4f-8e6b5c7d3a1b',
+            'seller_id': TEST_SELLER_ID,
             'target_revenue': 150000.50
         }):
             mock_service = Mock()
@@ -234,6 +263,7 @@ class TestSalesPlanCreateController:
             'start_date': '2025-01-01T00:00:00Z',
             'end_date': '2025-03-31T23:59:59Z',
             'client_id': 'a527df89-03f4-4c2c-9d4f-8e6b5c7d3a1b',
+            'seller_id': TEST_SELLER_ID,
             'target_revenue': 150000.50
         }):
             mock_service = Mock()

@@ -68,6 +68,7 @@ class TestSalesPlanRepository:
             start_date=datetime(2025, 1, 1),
             end_date=datetime(2025, 3, 31),
             client_id='a527df89-03f4-4c2c-9d4f-8e6b5c7d3a1b',
+            seller_id='8f1b7d3f-4e3b-4f5e-9b2a-7d2a6b9f1c05',
             target_revenue=150000.50
         )
     
@@ -120,6 +121,7 @@ class TestSalesPlanRepository:
             start_date=datetime(2025, 1, 1),
             end_date=datetime(2025, 3, 31),
             client_id='a527df89-03f4-4c2c-9d4f-8e6b5c7d3a1b',
+            seller_id='8f1b7d3f-4e3b-4f5e-9b2a-7d2a6b9f1c05',
             target_revenue=150000.50
         ))
         
@@ -143,6 +145,7 @@ class TestSalesPlanRepository:
         mock_db_plan.end_date = datetime(2025, 3, 31)
         mock_db_plan.client_id = 'a527df89-03f4-4c2c-9d4f-8e6b5c7d3a1b'
         mock_db_plan.target_revenue = 150000.50
+        mock_db_plan.seller_id = '8f1b7d3f-4e3b-4f5e-9b2a-7d2a6b9f1c05'
         mock_db_plan.objectives = ''
         
         # Configurar query_base directamente ya que no hay filtros
@@ -154,6 +157,7 @@ class TestSalesPlanRepository:
             start_date=datetime(2025, 1, 1),
             end_date=datetime(2025, 3, 31),
             client_id='a527df89-03f4-4c2c-9d4f-8e6b5c7d3a1b',
+            seller_id='8f1b7d3f-4e3b-4f5e-9b2a-7d2a6b9f1c05',
             target_revenue=150000.50
         ))
         
@@ -171,6 +175,7 @@ class TestSalesPlanRepository:
         mock_db_plan.start_date = datetime(2025, 1, 1)
         mock_db_plan.end_date = datetime(2025, 3, 31)
         mock_db_plan.client_id = 'a527df89-03f4-4c2c-9d4f-8e6b5c7d3a1b'
+        mock_db_plan.seller_id = '8f1b7d3f-4e3b-4f5e-9b2a-7d2a6b9f1c05'
         mock_db_plan.target_revenue = 150000.50
         mock_db_plan.objectives = ''
         
@@ -183,6 +188,7 @@ class TestSalesPlanRepository:
             start_date=datetime(2025, 1, 1),
             end_date=datetime(2025, 3, 31),
             client_id='a527df89-03f4-4c2c-9d4f-8e6b5c7d3a1b',
+            seller_id='8f1b7d3f-4e3b-4f5e-9b2a-7d2a6b9f1c05',
             target_revenue=150000.50
         ))
         
@@ -200,6 +206,7 @@ class TestSalesPlanRepository:
         mock_db_plan.start_date = datetime(2025, 1, 1)
         mock_db_plan.end_date = datetime(2025, 3, 31)
         mock_db_plan.client_id = 'a527df89-03f4-4c2c-9d4f-8e6b5c7d3a1b'
+        mock_db_plan.seller_id = '8f1b7d3f-4e3b-4f5e-9b2a-7d2a6b9f1c05'
         mock_db_plan.target_revenue = 150000.50
         mock_db_plan.objectives = ''
         
@@ -212,6 +219,7 @@ class TestSalesPlanRepository:
             start_date=datetime(2025, 1, 1),
             end_date=datetime(2025, 3, 31),
             client_id='a527df89-03f4-4c2c-9d4f-8e6b5c7d3a1b',
+            seller_id='8f1b7d3f-4e3b-4f5e-9b2a-7d2a6b9f1c05',
             target_revenue=150000.50
         ))
         
@@ -232,6 +240,7 @@ class TestSalesPlanRepository:
         mock_db_plan.start_date = datetime(2025, 1, 1)
         mock_db_plan.end_date = datetime(2025, 3, 31)
         mock_db_plan.client_id = 'a527df89-03f4-4c2c-9d4f-8e6b5c7d3a1b'
+        mock_db_plan.seller_id = '8f1b7d3f-4e3b-4f5e-9b2a-7d2a6b9f1c05'
         mock_db_plan.target_revenue = 150000.50
         mock_db_plan.objectives = ''
         
@@ -244,6 +253,7 @@ class TestSalesPlanRepository:
             start_date=datetime(2025, 1, 1),
             end_date=datetime(2025, 3, 31),
             client_id='a527df89-03f4-4c2c-9d4f-8e6b5c7d3a1b',
+            seller_id='8f1b7d3f-4e3b-4f5e-9b2a-7d2a6b9f1c05',
             target_revenue=150000.50
         ))
         
@@ -254,6 +264,44 @@ class TestSalesPlanRepository:
         )
         
         assert total == 1
+    
+    @patch('app.repositories.sales_plan_repository.SalesPlanDB')
+    def test_get_with_filters_with_seller_id(self, mock_sales_plan_db, repository, mock_session):
+        """Test obtener con filtro por seller_id"""
+        mock_db_plan = Mock()
+        mock_db_plan.id = 1
+        mock_db_plan.name = 'Plan Q1 2025'
+        mock_db_plan.start_date = datetime(2025, 1, 1)
+        mock_db_plan.end_date = datetime(2025, 3, 31)
+        mock_db_plan.client_id = 'a527df89-03f4-4c2c-9d4f-8e6b5c7d3a1b'
+        mock_db_plan.seller_id = '8f1b7d3f-4e3b-4f5e-9b2a-7d2a6b9f1c05'
+        mock_db_plan.target_revenue = 150000.50
+        mock_db_plan.objectives = ''
+        
+        # Configurar query para que filter() retorne el mismo objeto (encadenamiento)
+        mock_query = mock_session.query.return_value
+        mock_query.filter.return_value = mock_query  # filter() retorna el mismo query
+        mock_query.count.return_value = 1
+        mock_query.offset.return_value.limit.return_value.all.return_value = [mock_db_plan]
+        
+        repository._db_to_model = Mock(return_value=SalesPlan(
+            name='Plan Q1 2025',
+            start_date=datetime(2025, 1, 1),
+            end_date=datetime(2025, 3, 31),
+            client_id='a527df89-03f4-4c2c-9d4f-8e6b5c7d3a1b',
+            seller_id='8f1b7d3f-4e3b-4f5e-9b2a-7d2a6b9f1c05',
+            target_revenue=150000.50
+        ))
+        
+        plans, total = repository.get_with_filters(
+            page=1,
+            per_page=10,
+            seller_id='8f1b7d3f-4e3b-4f5e-9b2a-7d2a6b9f1c05'
+        )
+        
+        assert total == 1
+        assert len(plans) == 1
+    
     
     @patch('app.repositories.sales_plan_repository.SalesPlanDB')
     def test_db_to_model(self, mock_sales_plan_db, repository, mock_session):
@@ -268,6 +316,7 @@ class TestSalesPlanRepository:
         mock_db_plan.start_date = datetime(2025, 1, 1)
         mock_db_plan.end_date = datetime(2025, 3, 31)
         mock_db_plan.client_id = 'a527df89-03f4-4c2c-9d4f-8e6b5c7d3a1b'
+        mock_db_plan.seller_id = '8f1b7d3f-4e3b-4f5e-9b2a-7d2a6b9f1c05'
         mock_db_plan.target_revenue = 150000.50
         mock_db_plan.objectives = 'Test objectives'
         mock_db_plan.created_at = datetime.now()
@@ -280,6 +329,7 @@ class TestSalesPlanRepository:
         assert isinstance(result, SalesPlan)
         assert result.id == 1
         assert result.name == 'Test Plan'
+        assert result.seller_id == '8f1b7d3f-4e3b-4f5e-9b2a-7d2a6b9f1c05'
         assert result.target_revenue == 150000.50
     
     def test_delete_all_success(self, repository, mock_session):

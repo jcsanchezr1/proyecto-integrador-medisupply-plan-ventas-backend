@@ -6,6 +6,7 @@ from datetime import datetime
 from app.models.sales_plan import SalesPlan
 from app.exceptions.custom_exceptions import SalesPlanException
 
+TEST_SELLER_ID = '8f1b7d3f-4e3b-4f5e-9b2a-7d2a6b9f1c05'
 
 class TestSalesPlanModel:
     """Tests para el modelo SalesPlan"""
@@ -17,6 +18,7 @@ class TestSalesPlanModel:
             start_date=datetime(2025, 1, 1),
             end_date=datetime(2025, 3, 31),
             client_id='a527df89-03f4-4c2c-9d4f-8e6b5c7d3a1b',
+            seller_id=TEST_SELLER_ID,
             target_revenue=150000.50
         )
         
@@ -31,6 +33,7 @@ class TestSalesPlanModel:
             start_date=datetime(2025, 1, 1),
             end_date=datetime(2025, 3, 31),
             client_id='a527df89-03f4-4c2c-9d4f-8e6b5c7d3a1b',
+            seller_id=TEST_SELLER_ID,
             target_revenue=150000.50
         )
         
@@ -44,6 +47,7 @@ class TestSalesPlanModel:
             start_date=datetime(2025, 1, 1),
             end_date=datetime(2025, 3, 31),
             client_id='a527df89-03f4-4c2c-9d4f-8e6b5c7d3a1b',
+            seller_id=TEST_SELLER_ID,
             target_revenue=150000.50
         )
         
@@ -57,6 +61,7 @@ class TestSalesPlanModel:
             start_date=datetime(2025, 1, 1),
             end_date=datetime(2025, 3, 31),
             client_id='a527df89-03f4-4c2c-9d4f-8e6b5c7d3a1b',
+            seller_id=TEST_SELLER_ID,
             target_revenue=150000.50
         )
         
@@ -70,6 +75,7 @@ class TestSalesPlanModel:
             start_date=datetime(2025, 1, 1),
             end_date=datetime(2025, 3, 31),
             client_id='a527df89-03f4-4c2c-9d4f-8e6b5c7d3a1b',
+            seller_id=TEST_SELLER_ID,
             target_revenue=150000.50
         )
         
@@ -83,6 +89,7 @@ class TestSalesPlanModel:
             start_date=datetime(2025, 1, 1),
             end_date=datetime(2025, 3, 31),
             client_id='a527df89-03f4-4c2c-9d4f-8e6b5c7d3a1b',
+            seller_id=TEST_SELLER_ID,
             target_revenue=150000.50
         )
         
@@ -95,6 +102,7 @@ class TestSalesPlanModel:
             start_date=datetime(2025, 1, 1),
             end_date=datetime(2025, 3, 31),
             client_id='a527df89-03f4-4c2c-9d4f-8e6b5c7d3a1b',
+            seller_id=TEST_SELLER_ID,
             target_revenue=150000.50
         )
         
@@ -107,6 +115,7 @@ class TestSalesPlanModel:
             start_date=datetime(2025, 1, 1),
             end_date=datetime(2025, 3, 31),
             client_id='invalid-uuid',
+            seller_id=TEST_SELLER_ID,
             target_revenue=150000.50
         )
         
@@ -120,6 +129,7 @@ class TestSalesPlanModel:
             start_date=datetime(2025, 1, 1),
             end_date=datetime(2025, 3, 31),
             client_id='',
+            seller_id=TEST_SELLER_ID,
             target_revenue=150000.50
         )
         
@@ -133,6 +143,7 @@ class TestSalesPlanModel:
             start_date=datetime(2025, 3, 31),
             end_date=datetime(2025, 1, 1),
             client_id='a527df89-03f4-4c2c-9d4f-8e6b5c7d3a1b',
+            seller_id=TEST_SELLER_ID,
             target_revenue=150000.50
         )
         
@@ -146,6 +157,7 @@ class TestSalesPlanModel:
             start_date=datetime(2025, 1, 1),
             end_date=datetime(2025, 1, 1),
             client_id='a527df89-03f4-4c2c-9d4f-8e6b5c7d3a1b',
+            seller_id=TEST_SELLER_ID,
             target_revenue=150000.50
         )
         
@@ -158,6 +170,7 @@ class TestSalesPlanModel:
             start_date=datetime(2025, 1, 1),
             end_date=datetime(2025, 3, 31),
             client_id='a527df89-03f4-4c2c-9d4f-8e6b5c7d3a1b',
+            seller_id=TEST_SELLER_ID,
             target_revenue=-100.0
         )
         
@@ -171,6 +184,7 @@ class TestSalesPlanModel:
             start_date=datetime(2025, 1, 1),
             end_date=datetime(2025, 3, 31),
             client_id='a527df89-03f4-4c2c-9d4f-8e6b5c7d3a1b',
+            seller_id=TEST_SELLER_ID,
             target_revenue=0.0
         )
         
@@ -183,6 +197,7 @@ class TestSalesPlanModel:
             start_date=datetime(2025, 1, 1),
             end_date=datetime(2025, 3, 31),
             client_id='a527df89-03f4-4c2c-9d4f-8e6b5c7d3a1b',
+            seller_id=TEST_SELLER_ID,
             target_revenue=150000.501
         )
         
@@ -196,6 +211,7 @@ class TestSalesPlanModel:
             start_date=datetime(2025, 1, 1),
             end_date=datetime(2025, 3, 31),
             client_id='a527df89-03f4-4c2c-9d4f-8e6b5c7d3a1b',
+            seller_id=TEST_SELLER_ID,
             target_revenue=150000.50
         )
         
@@ -209,6 +225,7 @@ class TestSalesPlanModel:
             start_date=datetime(2025, 1, 1),
             end_date=datetime(2025, 3, 31),
             client_id='a527df89-03f4-4c2c-9d4f-8e6b5c7d3a1b',
+            seller_id=TEST_SELLER_ID,
             target_revenue=150000.50,
             objectives='Aumentar ventas'
         )
@@ -219,6 +236,7 @@ class TestSalesPlanModel:
         assert data['name'] == 'Plan Q1 2025'
         assert data['target_revenue'] == 150000.50
         assert data['objectives'] == 'Aumentar ventas'
+        assert data['seller_id'] == TEST_SELLER_ID
         assert 'start_date' in data
         assert 'end_date' in data
     
@@ -229,6 +247,7 @@ class TestSalesPlanModel:
             start_date=None,
             end_date=datetime(2025, 3, 31),
             client_id='a527df89-03f4-4c2c-9d4f-8e6b5c7d3a1b',
+            seller_id=TEST_SELLER_ID,
             target_revenue=150000.50
         )
         
@@ -242,6 +261,7 @@ class TestSalesPlanModel:
             start_date=datetime(2025, 1, 1),
             end_date=None,
             client_id='a527df89-03f4-4c2c-9d4f-8e6b5c7d3a1b',
+            seller_id=TEST_SELLER_ID,
             target_revenue=150000.50
         )
         
@@ -255,6 +275,7 @@ class TestSalesPlanModel:
             start_date=datetime(2025, 1, 1),
             end_date=datetime(2025, 3, 31),
             client_id='a527df89-03f4-4c2c-9d4f-8e6b5c7d3a1b',
+            seller_id=TEST_SELLER_ID,
             target_revenue=None
         )
         
@@ -268,10 +289,39 @@ class TestSalesPlanModel:
             start_date=datetime(2025, 1, 1),
             end_date=datetime(2025, 3, 31),
             client_id='a527df89-03f4-4c2c-9d4f-8e6b5c7d3a1b',
+            seller_id=TEST_SELLER_ID,
             target_revenue='not_a_number'
         )
         
         with pytest.raises(ValueError, match="debe ser un número"):
+            plan.validate()
+    
+    def test_validate_empty_seller_id(self):
+        """Test validación de seller_id vacío"""
+        plan = SalesPlan(
+            name='Plan Q1 2025',
+            start_date=datetime(2025, 1, 1),
+            end_date=datetime(2025, 3, 31),
+            client_id='a527df89-03f4-4c2c-9d4f-8e6b5c7d3a1b',
+            seller_id='',
+            target_revenue=150000.50
+        )
+        
+        with pytest.raises(ValueError, match="El ID del vendedor es obligatorio"):
+            plan.validate()
+    
+    def test_validate_invalid_seller_id_format(self):
+        """Test validación de seller_id inválido"""
+        plan = SalesPlan(
+            name='Plan Q1 2025',
+            start_date=datetime(2025, 1, 1),
+            end_date=datetime(2025, 3, 31),
+            client_id='a527df89-03f4-4c2c-9d4f-8e6b5c7d3a1b',
+            seller_id='invalid-uuid',
+            target_revenue=150000.50
+        )
+        
+        with pytest.raises(ValueError, match="El seller_id debe ser un UUID válido"):
             plan.validate()
 
 

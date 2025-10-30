@@ -31,6 +31,7 @@ class TestSalesPlanService:
             'start_date': '2025-01-01T00:00:00Z',
             'end_date': '2025-03-31T23:59:59Z',
             'client_id': 'a527df89-03f4-4c2c-9d4f-8e6b5c7d3a1b',
+            'seller_id': '8f1b7d3f-4e3b-4f5e-9b2a-7d2a6b9f1c05',
             'target_revenue': 150000.50,
             'objectives': 'Aumentar ventas'
         }
