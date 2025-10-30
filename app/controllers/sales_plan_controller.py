@@ -57,9 +57,21 @@ class SalesPlanController(BaseController):
             )
             
 
+            client_ids = [plan.client_id for plan in plans]
+            seller_ids = [plan.seller_id for plan in plans]
+            client_names_map = self.sales_plan_service.get_client_names_for_ids(client_ids)
+            seller_names_map = self.sales_plan_service.get_seller_names_for_ids(seller_ids)
+
+            items = []
+            for plan in plans:
+                item = plan.to_dict()
+                item['client_name'] = client_names_map.get(plan.client_id)
+                item['seller_name'] = seller_names_map.get(plan.seller_id)
+                items.append(item)
+
             total_pages = (total + per_page - 1) // per_page if per_page > 0 else 1
             data = {
-                'items': [plan.to_dict() for plan in plans],
+                'items': items,
                 'pagination': {
                     'page': page,
                     'per_page': per_page,

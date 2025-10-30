@@ -287,7 +287,12 @@ class TestSalesPlanController:
             
             mock_plan = Mock(spec=SalesPlan)
             mock_plan.to_dict.return_value = {'id': 1, 'name': 'Plan Q1 2025'}
+            mock_plan.client_id = 'test-client-id'
+            mock_plan.seller_id = 'test-seller-id'
             controller.sales_plan_service.get_sales_plans = Mock(return_value=([mock_plan], 1))
+
+            controller.sales_plan_service.get_client_names_for_ids = Mock(return_value={})
+            controller.sales_plan_service.get_seller_names_for_ids = Mock(return_value={})
             
             response, status = controller.get()
             
@@ -301,7 +306,11 @@ class TestSalesPlanController:
             
             mock_plan = Mock(spec=SalesPlan)
             mock_plan.to_dict.return_value = {'id': 1, 'name': 'Plan Q1 2025'}
+            mock_plan.client_id = 'test-client-id'
+            mock_plan.seller_id = 'test-seller-id'
             controller.sales_plan_service.get_sales_plans = Mock(return_value=([mock_plan], 10))
+            controller.sales_plan_service.get_client_names_for_ids = Mock(return_value={})
+            controller.sales_plan_service.get_seller_names_for_ids = Mock(return_value={})
             
             response, status = controller.get()
             
@@ -314,9 +323,13 @@ class TestSalesPlanController:
             mock_plan = Mock(spec=SalesPlan)
             mock_plan.to_dict.return_value = {'id': 1, 'name': 'Plan Q1 2025'}
             mock_plan.name = 'Plan Q1 2025'
+            mock_plan.client_id = 'test-client-id'
+            mock_plan.seller_id = 'test-seller-id'
             
             mock_service = Mock()
             mock_service.get_sales_plans = Mock(return_value=([mock_plan], 1))
+            mock_service.get_client_names_for_ids = Mock(return_value={})
+            mock_service.get_seller_names_for_ids = Mock(return_value={})
             mock_service_class.return_value = mock_service
             
             controller = SalesPlanController()
@@ -324,6 +337,29 @@ class TestSalesPlanController:
             response, status = controller.get()
             
             assert status == 200
+
+    @patch('app.controllers.sales_plan_controller.SalesPlanService')
+    def test_get_includes_client_and_seller_name(self, mock_service_class, app):
+        """Test que la respuesta incluye client_name y seller_name cuando el servicio los provee"""
+        with app.test_request_context():
+            mock_plan = Mock(spec=SalesPlan)
+            mock_plan.client_id = 'c-1'
+            mock_plan.seller_id = 's-1'
+            mock_plan.to_dict.return_value = {'id': 7, 'name': 'Plan Demo'}
+
+            mock_service = Mock()
+            mock_service.get_sales_plans = Mock(return_value=([mock_plan], 1))
+            mock_service.get_client_names_for_ids = Mock(return_value={'c-1': 'Cliente X'})
+            mock_service.get_seller_names_for_ids = Mock(return_value={'s-1': 'Seller Y'})
+            mock_service_class.return_value = mock_service
+
+            controller = SalesPlanController()
+            response, status = controller.get()
+
+            assert status == 200
+            item = response['data']['items'][0]
+            assert item['client_name'] == 'Cliente X'
+            assert item['seller_name'] == 'Seller Y'
     
     def test_get_invalid_page(self, app):
         """Test obtener con página inválida"""

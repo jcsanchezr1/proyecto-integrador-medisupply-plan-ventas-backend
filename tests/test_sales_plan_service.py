@@ -206,4 +206,73 @@ class TestSalesPlanService:
         with pytest.raises(SalesPlanBusinessLogicError):
             sales_plan_service.delete_all_sales_plans()
 
+    @patch('requests.get')
+    def test__get_client_name_user_wrapped(self, mock_get, sales_plan_service):
+        """Test obtener nombre de cliente cuando viene envuelto en data.user"""
+        mock_response = Mock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = {
+            'data': {
+                'user': {
+                    'id': 'uuid1',
+                    'name': 'Cliente Demo'
+                }
+            }
+        }
+        mock_get.return_value = mock_response
+        name = sales_plan_service._get_client_name('uuid1')
+        assert name == 'Cliente Demo'
+
+    @patch('requests.get')
+    def test__get_client_name_flat_data(self, mock_get, sales_plan_service):
+        """Test obtener nombre de cliente cuando viene directo en data"""
+        mock_response = Mock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = {
+            'data': {
+                'id': 'uuid1',
+                'name': 'Cliente Plano'
+            }
+        }
+        mock_get.return_value = mock_response
+        name = sales_plan_service._get_client_name('uuid1')
+        assert name == 'Cliente Plano'
+
+    @patch('requests.get')
+    def test__get_client_name_not_found(self, mock_get, sales_plan_service):
+        """Test obtener nombre de cliente con 404 devuelve None"""
+        mock_response = Mock()
+        mock_response.status_code = 404
+        mock_get.return_value = mock_response
+        name = sales_plan_service._get_client_name('uuid1')
+        assert name is None
+
+    @patch('requests.get')
+    def test__get_client_name_request_exception(self, mock_get, sales_plan_service):
+        """Test excepción de requests devuelve None"""
+        import requests
+        mock_get.side_effect = requests.exceptions.RequestException()
+        name = sales_plan_service._get_client_name('uuid1')
+        assert name is None
+
+    def test_get_client_names_for_ids_deduplicates(self, sales_plan_service):
+        """Test mapea y deduplica IDs al consultar nombres"""
+        with patch.object(sales_plan_service, '_get_client_name', side_effect=['A', 'B']) as mock_get:
+            result = sales_plan_service.get_client_names_for_ids(['x', 'y', 'x'])
+            # Verificar que solo se consultó 2 veces (para x e y únicos)
+            assert mock_get.call_count == 2
+            # Verificar que ambas claves están presentes
+            assert 'x' in result
+            assert 'y' in result
+            # Verificar que los valores están asignados (sin importar orden exacto)
+            assert result['x'] in ['A', 'B']
+            assert result['y'] in ['A', 'B']
+            assert result['x'] != result['y']  # Deben ser diferentes
+
+    def test_get_seller_names_for_ids_basic(self, sales_plan_service):
+        """Test mapea seller IDs a nombres reutilizando _get_client_name"""
+        with patch.object(sales_plan_service, '_get_client_name', side_effect=['S1']):
+            result = sales_plan_service.get_seller_names_for_ids(['s-1'])
+            assert result == {'s-1': 'S1'}
+
 

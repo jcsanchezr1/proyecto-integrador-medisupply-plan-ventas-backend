@@ -106,6 +106,38 @@ class SalesPlanService:
         except requests.exceptions.RequestException as e:
             logger.error(f"Error buscando clientes por nombre: {str(e)}")
             return []
+
+    def get_client_names_for_ids(self, client_ids: List[str]) -> dict:
+        """Devuelve un diccionario {client_id: client_name}. Si no se encuentra, usa None."""
+        names: dict = {}
+        unique_ids = list({cid for cid in client_ids if cid})
+        for client_id in unique_ids:
+            names[client_id] = self._get_client_name(client_id)
+        return names
+
+    def _get_client_name(self, client_id: str) -> Optional[str]:
+        """Obtiene el nombre del cliente desde el servicio de autenticación."""
+        try:
+            response = requests.get(
+                f"{self.auth_service_url}/auth/user/{client_id}",
+                timeout=5
+            )
+            if response.status_code == 200:
+                data = response.json()
+                user = data.get('data', {}).get('user') or data.get('data', {})
+                return user.get('name') if isinstance(user, dict) else None
+            return None  # pragma: no cover
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Error obteniendo nombre de cliente {client_id}: {str(e)}")
+            return None
+
+    def get_seller_names_for_ids(self, seller_ids: List[str]) -> dict:
+        """Devuelve un diccionario {seller_id: seller_name}. Si no se encuentra, usa None."""
+        names: dict = {}
+        unique_ids = list({sid for sid in seller_ids if sid})
+        for seller_id in unique_ids:
+            names[seller_id] = self._get_client_name(seller_id)
+        return names
     
     def delete_all_sales_plans(self) -> bool:
         """Elimina todos los planes"""
