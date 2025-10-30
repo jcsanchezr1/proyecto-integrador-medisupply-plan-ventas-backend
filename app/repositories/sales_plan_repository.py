@@ -36,6 +36,7 @@ class SalesPlanRepository(BaseRepository):
                 start_date=sales_plan.start_date,
                 end_date=sales_plan.end_date,
                 client_id=sales_plan.client_id,
+                seller_id=sales_plan.seller_id,
                 target_revenue=sales_plan.target_revenue,
                 objectives=sales_plan.objectives
             )
@@ -65,6 +66,7 @@ class SalesPlanRepository(BaseRepository):
         name: Optional[str] = None,
         client_id: Optional[str] = None,
         client_ids: Optional[List[str]] = None,
+        seller_id: Optional[str] = None,
         start_date: Optional[str] = None,
         end_date: Optional[str] = None
     ) -> Tuple[List[SalesPlan], int]:
@@ -74,6 +76,9 @@ class SalesPlanRepository(BaseRepository):
             
             if name:
                 query = query.filter(SalesPlanDB.name.ilike(f"%{name}%"))
+            
+            if seller_id:
+                query = query.filter(SalesPlanDB.seller_id == seller_id)
             
             if client_ids:
                 query = query.filter(or_(*[SalesPlanDB.client_id == cid for cid in client_ids]))
@@ -133,6 +138,7 @@ class SalesPlanRepository(BaseRepository):
             start_date=db_plan.start_date,
             end_date=db_plan.end_date,
             client_id=db_plan.client_id,
+            seller_id=db_plan.seller_id,
             target_revenue=db_plan.target_revenue,
             objectives=db_plan.objectives,
             created_at=db_plan.created_at,

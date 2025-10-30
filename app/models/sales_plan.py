@@ -16,6 +16,7 @@ class SalesPlan(BaseModel):
         start_date: datetime,
         end_date: datetime,
         client_id: str,
+        seller_id: str,
         target_revenue: float,
         objectives: Optional[str] = None,
         created_at: Optional[datetime] = None,
@@ -27,6 +28,7 @@ class SalesPlan(BaseModel):
         self.start_date = start_date
         self.end_date = end_date
         self.client_id = client_id
+        self.seller_id = seller_id
         self.target_revenue = target_revenue
         self.objectives = objectives or ""
         self.created_at = created_at or datetime.utcnow()
@@ -36,6 +38,7 @@ class SalesPlan(BaseModel):
         """Valida los datos del plan de ventas"""
         self._validate_name()
         self._validate_client_id()
+        self._validate_seller_id()
         self._validate_dates()
         self._validate_target_revenue()
     
@@ -61,6 +64,15 @@ class SalesPlan(BaseModel):
         uuid_pattern = r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
         if not re.match(uuid_pattern, self.client_id, re.IGNORECASE):
             raise ValueError("El client_id debe ser un UUID válido")
+    
+    def _validate_seller_id(self) -> None:
+        """Valida el ID del vendedor"""
+        if not self.seller_id:
+            raise ValueError("El ID del vendedor es obligatorio")
+        
+        uuid_pattern = r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+        if not re.match(uuid_pattern, self.seller_id, re.IGNORECASE):
+            raise ValueError("El seller_id debe ser un UUID válido")
     
     def _validate_dates(self) -> None:
         """Valida las fechas del plan"""
@@ -98,6 +110,7 @@ class SalesPlan(BaseModel):
             'start_date': self.start_date.isoformat() if self.start_date else None,
             'end_date': self.end_date.isoformat() if self.end_date else None,
             'client_id': self.client_id,
+            'seller_id': self.seller_id,
             'target_revenue': round(self.target_revenue, 2),
             'objectives': self.objectives,
             'created_at': self.created_at.isoformat() if self.created_at else None,

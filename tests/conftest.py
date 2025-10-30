@@ -107,6 +107,7 @@ def sample_sales_plan_model():
         start_date=datetime(2025, 1, 1),
         end_date=datetime(2025, 3, 31),
         client_id='a527df89-03f4-4c2c-9d4f-8e6b5c7d3a1b',
+        seller_id='b527df89-03f4-4c2c-9d4f-8e6b5c7d3a1b',
         target_revenue=150000.50,
         objectives='Aumentar ventas en 20%',
         created_at=datetime.utcnow(),
@@ -147,6 +148,7 @@ def mock_flask_app():
     app.config = {}
     
     return app
+
 
 
 

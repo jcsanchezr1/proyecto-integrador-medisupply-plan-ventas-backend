@@ -17,6 +17,7 @@ class SalesPlanDB(Base):
     start_date = Column(DateTime, nullable=False)
     end_date = Column(DateTime, nullable=False)
     client_id = Column(String(36), nullable=False)
+    seller_id = Column(String(36), nullable=False)
     target_revenue = Column(Float, nullable=False)
     objectives = Column(Text, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)

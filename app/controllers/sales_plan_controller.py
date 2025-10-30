@@ -35,6 +35,7 @@ class SalesPlanController(BaseController):
             name = request.args.get('name', type=str)
             client_id = request.args.get('client_id', type=str)
             client_name = request.args.get('client_name', type=str)
+            seller_id = request.args.get('seller_id', type=str)
             start_date = request.args.get('start_date', type=str)
             end_date = request.args.get('end_date', type=str)
             
@@ -50,6 +51,7 @@ class SalesPlanController(BaseController):
                 name=name,
                 client_id=client_id,
                 client_name=client_name,
+                seller_id=seller_id,
                 start_date=start_date,
                 end_date=end_date
             )

@@ -35,6 +35,7 @@ class SalesPlanService:
             start_date=datetime.fromisoformat(plan_data['start_date'].replace('Z', '+00:00')),
             end_date=datetime.fromisoformat(plan_data['end_date'].replace('Z', '+00:00')),
             client_id=plan_data['client_id'],
+            seller_id=plan_data['seller_id'],
             target_revenue=plan_data['target_revenue'],
             objectives=plan_data.get('objectives', '')
         )
@@ -59,6 +60,7 @@ class SalesPlanService:
         name: Optional[str] = None,
         client_id: Optional[str] = None,
         client_name: Optional[str] = None,
+        seller_id: Optional[str] = None,
         start_date: Optional[str] = None,
         end_date: Optional[str] = None
     ) -> Tuple[List[SalesPlan], int]:
@@ -71,6 +73,7 @@ class SalesPlanService:
                     per_page=per_page,
                     name=name,
                     client_ids=client_ids,
+                    seller_id=seller_id,
                     start_date=start_date,
                     end_date=end_date
                 )
@@ -80,6 +83,7 @@ class SalesPlanService:
                     per_page=per_page,
                     name=name,
                     client_id=client_id,
+                    seller_id=seller_id,
                     start_date=start_date,
                     end_date=end_date
                 )

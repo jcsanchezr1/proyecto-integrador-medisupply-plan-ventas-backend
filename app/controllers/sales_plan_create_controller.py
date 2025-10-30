@@ -53,6 +53,8 @@ class SalesPlanCreateController(BaseController, Resource):
             if not data.get('target_revenue'):
                 return self.error_response("Error de validación", "El campo 'target_revenue' es obligatorio", 422)
             
+            if not data.get('seller_id'):
+                return self.error_response("Error de validación", "El campo 'seller_id' es obligatorio", 422)
 
             try:
                 from datetime import datetime
