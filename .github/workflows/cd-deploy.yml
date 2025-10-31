@@ -79,7 +79,7 @@ jobs:
             --region ${{ env.GCP_REGION }} \
             --platform managed \
             --service-account ${{ env.SIGNING_SERVICE_ACCOUNT_EMAIL }} \
-            --set-env-vars HOST="0.0.0.0",DEBUG="false",PORT="8080",DATABASE_URL="${{ env.DATABASE_URL }}",AUTH_SERVICE_URL="${{ env.AUTH_SERVICE_URL }}" \
+            --set-env-vars HOST="0.0.0.0",DEBUG="false",DATABASE_URL="${{ env.DATABASE_URL }}",AUTH_SERVICE_URL="${{ env.AUTH_SERVICE_URL }}" \
             --memory 2Gi \
             --cpu 2 \
             --min-instances 1 \
