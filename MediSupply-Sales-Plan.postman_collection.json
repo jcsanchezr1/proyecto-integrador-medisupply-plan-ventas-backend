@@ -1,0 +1,856 @@
+{
+	"info": {
+		"_postman_id": "a1b2c3d4-e5f6-4g7h-8i9j-0k1l2m3n4o5p",
+		"name": "MediSupply Sales Plan API - Con Validaciones Completas",
+		"description": "Colección completa para validar el servicio de planes de ventas MediSupply con todas las validaciones",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Health Check",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status code is 200', function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"pm.test('Response is pong', function () {",
+							"    const responseText = pm.response.text().trim();",
+							"    pm.expect(responseText).to.eql('\"pong\"');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{url_local_autorizador}}/sales-plan/ping",
+					"host": [
+						"{{url_local_autorizador}}"
+					],
+					"path": [
+						"sales-plan",
+						"ping"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Auth Token Admin - Exitoso",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status code is 200', function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"pm.test('Response has access_token', function () {",
+							"    const responseJson = pm.response.json();",
+							"    pm.expect(responseJson).to.have.property('access_token');",
+							"    pm.expect(responseJson.access_token).to.be.a('string');",
+							"});",
+							"const responseJson = pm.response.json();",
+							"if (responseJson && responseJson.access_token) {",
+							"    pm.globals.set('auth_token', responseJson.access_token);",
+							"    pm.environment.set('auth_token', responseJson.access_token);",
+							"    if (responseJson.id) {",
+							"        pm.environment.set('valid_seller_id', responseJson.id);",
+							"        console.log('Seller ID guardado:', responseJson.id);",
+							"    }",
+							"    console.log('Token guardado en globals y environment');",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"user\": \"medisupply05@gmail.com\",\n    \"password\": \"Admin123456\"\n}"
+				},
+				"url": {
+					"raw": "{{url_local_autorizador}}/auth/token",
+					"host": [
+						"{{url_local_autorizador}}"
+					],
+					"path": [
+						"auth",
+						"token"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Crear Cliente de Prueba",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"const timestamp = Date.now();",
+							"const randomNum = Math.floor(Math.random() * 10000);",
+							"const emailCliente = 'cliente_' + timestamp + '_' + randomNum + '@test.com';",
+							"",
+							"// Generar datos válidos según las validaciones del modelo",
+							"const institutionTypes = ['Clínica', 'Hospital', 'Laboratorio'];",
+							"const specialties = ['Cadena de frío', 'Alto valor', 'Seguridad'];",
+							"const randomInstitution = institutionTypes[Math.floor(Math.random() * institutionTypes.length)];",
+							"const randomSpecialty = specialties[Math.floor(Math.random() * specialties.length)];",
+							"",
+							"pm.environment.set('cliente_name', randomInstitution + ' Test ' + randomNum);",
+							"pm.environment.set('cliente_email', emailCliente);",
+							"pm.environment.set('cliente_tax_id', 'CC' + randomNum);",
+							"pm.environment.set('cliente_password', 'Password123');",
+							"pm.environment.set('cliente_institution_type', randomInstitution);",
+							"pm.environment.set('cliente_specialty', randomSpecialty);",
+							"pm.environment.set('cliente_applicant_name', 'Dr. Juan Pérez ' + randomNum);",
+							"pm.environment.set('cliente_applicant_email', 'juan.perez' + randomNum + '@test.com');",
+							"",
+							"console.log('Cliente generado:', emailCliente, 'Tipo:', randomInstitution, 'Especialidad:', randomSpecialty);"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status code is 201', function () {",
+							"    pm.response.to.have.status(201);",
+							"});",
+							"const response = pm.response.json();",
+							"if (response.data && response.data.id) {",
+							"    pm.environment.set('cliente_created_id', response.data.id);",
+							"    console.log('Cliente creado con ID:', response.data.id);",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"name\": \"{{cliente_name}}\",\n  \"tax_id\": \"{{cliente_tax_id}}\",\n  \"email\": \"{{cliente_email}}\",\n  \"address\": \"Calle 123 #45-67, Bogotá\",\n  \"phone\": \"3001234567\",\n  \"institution_type\": \"{{cliente_institution_type}}\",\n  \"specialty\": \"{{cliente_specialty}}\",\n  \"applicant_name\": \"{{cliente_applicant_name}}\",\n  \"applicant_email\": \"{{cliente_applicant_email}}\",\n  \"latitude\": 4.711,\n  \"longitude\": -74.0721,\n  \"password\": \"{{cliente_password}}\",\n  \"confirm_password\": \"{{cliente_password}}\"\n}"
+				},
+				"url": {
+					"raw": "{{url_local_autorizador}}/auth/user",
+					"host": [
+						"{{url_local_autorizador}}"
+					],
+					"path": [
+						"auth",
+						"user"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Obtener Clientes - Para Usar en Planes",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status code is 200', function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"const response = pm.response.json();",
+							"if (response.data && response.data.users && response.data.users.length > 0) {",
+							"    const clienteCreado = pm.environment.get('cliente_created_id');",
+							"    const clientId = clienteCreado || response.data.users[0].id;",
+							"    pm.environment.set('valid_client_id', clientId);",
+							"    console.log('Client ID válido guardado:', clientId);",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{auth_token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{url_local_autorizador}}/auth/user/get?role=Cliente",
+					"host": [
+						"{{url_local_autorizador}}"
+					],
+					"path": [
+						"auth",
+						"user",
+						"get"
+					],
+					"query": [
+						{
+							"key": "role",
+							"value": "Cliente"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Crear Plan de Ventas - Datos Válidos",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"const randomNum = Math.floor(Math.random() * 10000);",
+							"const planNames = ['Plan Q1-2025', 'Plan Estratégico Q2', 'Plan Anual VIP', 'Plan Especial-2025', 'Plan AÑO NUEVO'];",
+							"const randomPlan = planNames[Math.floor(Math.random() * planNames.length)];",
+							"",
+							"const startDate = new Date();",
+							"startDate.setMonth(startDate.getMonth() + 1);",
+							"const endDate = new Date(startDate);",
+							"endDate.setMonth(endDate.getMonth() + 3);",
+							"",
+							"const formatDate = (date) => date.toISOString().split('T')[0];",
+							"",
+							"const objectives = ['Aumentar ventas en un 20%', 'Expandir mercado en regiones nuevas', 'Mejorar satisfacción del cliente', 'Reducir costos operativos'];",
+							"const randomObjective = objectives[Math.floor(Math.random() * objectives.length)];",
+							"",
+							"const targetRevenue = (Math.random() * 1000000 + 50000).toFixed(2);",
+							"",
+						"const validClientId = pm.environment.get('valid_client_id') || 'a527df89-dc1f-4b30-9f2e-5c8a1b3d4e5f';",
+						"const validSellerId = pm.environment.get('valid_seller_id') || '8f1b7d3f-4e3b-4f5e-9b2a-7d2a6b9f1c05';",
+						"",
+						"pm.environment.set('plan_name_valido', randomPlan + ' ' + randomNum);",
+						"pm.environment.set('start_date', formatDate(startDate));",
+						"pm.environment.set('end_date', formatDate(endDate));",
+						"pm.environment.set('target_revenue', targetRevenue);",
+						"pm.environment.set('objectives', randomObjective + '. Objetivos adicionales: mejorar la eficiencia operativa y fortalecer las relaciones comerciales.');",
+						"pm.environment.set('valid_seller_id', validSellerId);",
+						"",
+						"console.log('Plan de ventas generado:', randomPlan + ' ' + randomNum);"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status code is 201', function () {",
+							"    pm.response.to.have.status(201);",
+							"});",
+							"pm.test('Response has success structure', function () {",
+							"    const response = pm.response.json();",
+							"    pm.expect(response).to.have.property('success');",
+							"    pm.expect(response).to.have.property('message');",
+							"    pm.expect(response).to.have.property('data');",
+							"    pm.expect(response.success).to.be.true;",
+							"});",
+							"pm.test('Data contains plan information', function () {",
+							"    const response = pm.response.json();",
+							"    const data = response.data;",
+							"    pm.expect(data).to.have.property('id');",
+							"    pm.expect(data).to.have.property('name');",
+							"    pm.expect(data).to.have.property('client_id');",
+							"    pm.expect(data).to.have.property('seller_id');",
+							"    pm.expect(data).to.have.property('start_date');",
+							"    pm.expect(data).to.have.property('end_date');",
+							"    pm.expect(data).to.have.property('target_revenue');",
+							"    pm.expect(data).to.have.property('objectives');",
+							"});",
+							"pm.test('seller_id is a valid UUID', function () {",
+							"    const response = pm.response.json();",
+							"    const sellerId = response.data.seller_id;",
+							"    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;",
+							"    pm.expect(sellerId).to.match(uuidRegex);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{auth_token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"name\": \"{{plan_name_valido}}\",\n    \"client_id\": \"{{valid_client_id}}\",\n    \"seller_id\": \"{{valid_seller_id}}\",\n    \"start_date\": \"{{start_date}}\",\n    \"end_date\": \"{{end_date}}\",\n    \"target_revenue\": {{target_revenue}},\n    \"objectives\": \"{{objectives}}\"\n}"
+				},
+				"url": {
+					"raw": "{{url_local_autorizador}}/sales-plan/create",
+					"host": [
+						"{{url_local_autorizador}}"
+					],
+					"path": [
+						"sales-plan",
+						"create"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Crear Plan - Cliente No Existe",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"pm.environment.set('plan_name_invalid_client', 'Plan Test Cliente Inválido');",
+							"pm.environment.set('invalid_client_id', '99999999-9999-9999-9999-999999999999');",
+							"",
+							"const startDate = new Date();",
+							"startDate.setMonth(startDate.getMonth() + 1);",
+							"const endDate = new Date(startDate);",
+							"endDate.setMonth(endDate.getMonth() + 3);",
+							"const formatDate = (date) => date.toISOString().split('T')[0];",
+							"",
+							"pm.environment.set('start_date_test', formatDate(startDate));",
+							"pm.environment.set('end_date_test', formatDate(endDate));",
+							"pm.environment.set('target_revenue_test', '50000.00');"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status code is 422', function () {",
+							"    pm.response.to.have.status(422);",
+							"});",
+							"pm.test('Response has error structure', function () {",
+							"    const response = pm.response.json();",
+							"    pm.expect(response).to.have.property('success');",
+							"    pm.expect(response).to.have.property('error');",
+							"    pm.expect(response.success).to.be.false;",
+							"});",
+							"pm.test('Error message mentions client validation', function () {",
+							"    const response = pm.response.json();",
+							"    pm.expect(response.details).to.include('no existe');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{auth_token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"name\": \"{{plan_name_invalid_client}}\",\n    \"client_id\": \"{{invalid_client_id}}\",\n    \"seller_id\": \"{{valid_seller_id}}\",\n    \"start_date\": \"{{start_date_test}}\",\n    \"end_date\": \"{{end_date_test}}\",\n    \"target_revenue\": {{target_revenue_test}},\n    \"objectives\": \"Objetivo de prueba\"\n}"
+				},
+				"url": {
+					"raw": "{{url_local_autorizador}}/sales-plan/create",
+					"host": [
+						"{{url_local_autorizador}}"
+					],
+					"path": [
+						"sales-plan",
+						"create"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Crear Plan - Nombre Con Caracteres Inválidos",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status code is 422', function () {",
+							"    pm.response.to.have.status(422);",
+							"});",
+							"pm.test('Response has error structure', function () {",
+							"    const response = pm.response.json();",
+							"    pm.expect(response).to.have.property('success');",
+							"    pm.expect(response).to.have.property('error');",
+							"    pm.expect(response.success).to.be.false;",
+							"});",
+							"pm.test('Error message mentions name validation', function () {",
+							"    const response = pm.response.json();",
+							"    pm.expect(response.details).to.include('letras');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{auth_token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"name\": \"Plan#2025@!$\",\n    \"client_id\": \"{{valid_client_id}}\",\n    \"seller_id\": \"{{valid_seller_id}}\",\n    \"start_date\": \"2025-02-01\",\n    \"end_date\": \"2025-05-01\",\n    \"target_revenue\": 50000.00,\n    \"objectives\": \"Objetivo de prueba\"\n}"
+				},
+				"url": {
+					"raw": "{{url_local_autorizador}}/sales-plan/create",
+					"host": [
+						"{{url_local_autorizador}}"
+					],
+					"path": [
+						"sales-plan",
+						"create"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Crear Plan - Fecha Inicio Mayor Que Fin",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status code is 422', function () {",
+							"    pm.response.to.have.status(422);",
+							"});",
+							"pm.test('Error message mentions dates', function () {",
+							"    const response = pm.response.json();",
+							"    pm.expect(response.details).to.include('fecha');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{auth_token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"name\": \"Plan Validación Fechas\",\n    \"client_id\": \"{{valid_client_id}}\",\n    \"seller_id\": \"{{valid_seller_id}}\",\n    \"start_date\": \"2025-05-01\",\n    \"end_date\": \"2025-02-01\",\n    \"target_revenue\": 50000.00,\n    \"objectives\": \"Objetivo de prueba\"\n}"
+				},
+				"url": {
+					"raw": "{{url_local_autorizador}}/sales-plan/create",
+					"host": [
+						"{{url_local_autorizador}}"
+					],
+					"path": [
+						"sales-plan",
+						"create"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Crear Plan - Target Revenue Negativo",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status code is 422', function () {",
+							"    pm.response.to.have.status(422);",
+							"});",
+							"pm.test('Error message mentions revenue', function () {",
+							"    const response = pm.response.json();",
+							"    pm.expect(response.details).to.include('revenue');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{auth_token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"name\": \"Plan Revenue Negativo\",\n    \"client_id\": \"{{valid_client_id}}\",\n    \"seller_id\": \"{{valid_seller_id}}\",\n    \"start_date\": \"2025-02-01\",\n    \"end_date\": \"2025-05-01\",\n    \"target_revenue\": -1000,\n    \"objectives\": \"Objetivo de prueba\"\n}"
+				},
+				"url": {
+					"raw": "{{url_local_autorizador}}/sales-plan/create",
+					"host": [
+						"{{url_local_autorizador}}"
+					],
+					"path": [
+						"sales-plan",
+						"create"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Crear Plan - Nombre Duplicado",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"pm.environment.set('duplicate_name', 'Plan Duplicado ' + Math.floor(Math.random() * 10000));"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"if (pm.response.code === 201 || pm.response.code === 422) {",
+							"    pm.test('Status code is valid', function () {",
+							"        pm.expect([201, 422]).to.include(pm.response.code);",
+							"    });",
+							"    if (pm.response.code === 422) {",
+							"        pm.test('Error mentions duplicate', function () {",
+							"            const response = pm.response.json();",
+							"            pm.expect(response.details.toLowerCase()).to.include('duplicado');",
+							"        });",
+							"    }",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{auth_token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"name\": \"{{duplicate_name}}\",\n    \"client_id\": \"{{valid_client_id}}\",\n    \"seller_id\": \"{{valid_seller_id}}\",\n    \"start_date\": \"2025-02-01\",\n    \"end_date\": \"2025-05-01\",\n    \"target_revenue\": 50000.00,\n    \"objectives\": \"Objetivo de prueba\"\n}"
+				},
+				"url": {
+					"raw": "{{url_local_autorizador}}/sales-plan/create",
+					"host": [
+						"{{url_local_autorizador}}"
+					],
+					"path": [
+						"sales-plan",
+						"create"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Consultar Planes de Ventas - Todos",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status code is 200', function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"pm.test('Response has success structure', function () {",
+							"    const response = pm.response.json();",
+							"    pm.expect(response).to.have.property('success');",
+							"    pm.expect(response).to.have.property('message');",
+							"    pm.expect(response).to.have.property('data');",
+							"});",
+							"pm.test('Items have seller_id field', function () {",
+							"    const response = pm.response.json();",
+							"    if (response.data && response.data.items && response.data.items.length > 0) {",
+							"        pm.expect(response.data.items[0]).to.have.property('seller_id');",
+							"    }",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{auth_token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{url_local_autorizador}}/sales-plan",
+					"host": [
+						"{{url_local_autorizador}}"
+					],
+					"path": [
+						"sales-plan"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Consultar Planes de Ventas - Con Todos los Filtros",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"const validSellerId = pm.environment.get('valid_seller_id') || '8f1b7d3f-4e3b-4f5e-9b2a-7d2a6b9f1c05';",
+							"const validClientId = pm.environment.get('valid_client_id') || 'a527df89-dc1f-4b30-9f2e-5c8a1b3d4e5f';",
+							"",
+							"// Generar fechas para filtro",
+							"const startDateFilter = new Date();",
+							"startDateFilter.setMonth(startDateFilter.getMonth() - 3);",
+							"const endDateFilter = new Date();",
+							"endDateFilter.setMonth(endDateFilter.getMonth() + 12);",
+							"",
+							"const formatDateForFilter = (date) => date.toISOString().split('T')[0] + 'T00:00:00Z';",
+							"",
+							"pm.environment.set('filter_seller_id', validSellerId);",
+							"pm.environment.set('filter_client_id', validClientId);",
+							"pm.environment.set('filter_name', 'Plan');",
+							"pm.environment.set('filter_start_date', formatDateForFilter(startDateFilter));",
+							"pm.environment.set('filter_end_date', formatDateForFilter(endDateFilter));",
+							"pm.environment.set('filter_page', '1');",
+							"pm.environment.set('filter_per_page', '10');",
+							"",
+							"console.log('Filtros configurados:', {",
+							"    seller_id: validSellerId,",
+							"    client_id: validClientId,",
+							"    name: 'Plan',",
+							"    start_date: formatDateForFilter(startDateFilter),",
+							"    end_date: formatDateForFilter(endDateFilter)",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status code is 200', function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"pm.test('Response has success structure', function () {",
+							"    const response = pm.response.json();",
+							"    pm.expect(response).to.have.property('success');",
+							"    pm.expect(response).to.have.property('message');",
+							"    pm.expect(response).to.have.property('data');",
+							"});",
+							"pm.test('Response has pagination', function () {",
+							"    const response = pm.response.json();",
+							"    pm.expect(response.data).to.have.property('pagination');",
+							"    pm.expect(response.data.pagination).to.have.property('page');",
+							"    pm.expect(response.data.pagination).to.have.property('per_page');",
+							"    pm.expect(response.data.pagination).to.have.property('total');",
+							"});",
+							"pm.test('Items have seller_id field', function () {",
+							"    const response = pm.response.json();",
+							"    if (response.data && response.data.items && response.data.items.length > 0) {",
+							"        response.data.items.forEach(item => {",
+							"            pm.expect(item).to.have.property('seller_id');",
+							"            const sellerId = item.seller_id;",
+							"            const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;",
+							"            pm.expect(sellerId).to.match(uuidRegex);",
+							"        });",
+							"    }",
+							"});",
+							"pm.test('Items match seller_id filter', function () {",
+							"    const response = pm.response.json();",
+							"    const filterSellerId = pm.environment.get('filter_seller_id');",
+							"    if (response.data && response.data.items && response.data.items.length > 0 && filterSellerId) {",
+							"        response.data.items.forEach(item => {",
+							"            pm.expect(item.seller_id).to.eql(filterSellerId);",
+							"        });",
+							"    }",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{auth_token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{url_local_autorizador}}/sales-plan?page={{filter_page}}&per_page={{filter_per_page}}&seller_id={{filter_seller_id}}&client_id={{filter_client_id}}&name={{filter_name}}&start_date={{filter_start_date}}&end_date={{filter_end_date}}",
+					"host": [
+						"{{url_local_autorizador}}"
+					],
+					"path": [
+						"sales-plan"
+					],
+					"query": [
+						{
+							"key": "page",
+							"value": "{{filter_page}}",
+							"description": "Número de página"
+						},
+						{
+							"key": "per_page",
+							"value": "{{filter_per_page}}",
+							"description": "Resultados por página"
+						},
+						{
+							"key": "seller_id",
+							"value": "{{filter_seller_id}}",
+							"description": "ID del vendedor (filtro exacto)"
+						},
+						{
+							"key": "client_id",
+							"value": "{{filter_client_id}}",
+							"description": "ID del cliente"
+						},
+						{
+							"key": "name",
+							"value": "{{filter_name}}",
+							"description": "Nombre del plan (búsqueda parcial)"
+						},
+						{
+							"key": "start_date",
+							"value": "{{filter_start_date}}",
+							"description": "Fecha de inicio (ISO 8601)"
+						},
+						{
+							"key": "end_date",
+							"value": "{{filter_end_date}}",
+							"description": "Fecha de fin (ISO 8601)"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete All Plans",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status code is 200', function () {",
+							"    pm.response.to.have.status(200);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{auth_token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{url_local_autorizador}}/sales-plan/delete-all",
+					"host": [
+						"{{url_local_autorizador}}"
+					],
+					"path": [
+						"sales-plan",
+						"delete-all"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "url_local_autorizador",
+			"value": "http://localhost:8082",
+			"type": "string"
+		},
+		{
+			"key": "auth_token",
+			"value": "",
+			"type": "string"
+		}
+	]
+}
