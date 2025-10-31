@@ -1,0 +1,95 @@
+name: CD MediSupply Sales Plan Deploy
+
+on:
+  workflow_run:
+    workflows: ["CI MediSupply Sales Plan Release"]
+    types:
+      - completed
+
+env:
+  # Configuración del proyecto GCP (usando variables de GitHub Actions)
+  GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+  GCP_REGION: ${{ vars.GCP_REGION }}
+  ARTIFACT_REGISTRY: ${{ vars.ARTIFACT_REGISTRY }}
+  SERVICE_NAME: ${{ vars.SERVICE_NAME }}
+  IMAGE_NAME: ${{ vars.IMAGE_NAME }}
+
+  # Variables de entorno de la aplicación (usando variables de GitHub Actions)
+  DATABASE_URL: ${{ vars.DATABASE_URL }}
+  SIGNING_SERVICE_ACCOUNT_EMAIL: ${{ vars.SIGNING_SERVICE_ACCOUNT_EMAIL }}
+  AUTH_SERVICE_URL: ${{ vars.AUTH_SERVICE_URL }}
+
+  # Configuración de la imagen
+  IMAGE_TAG: ${{ github.sha }}
+  IMAGE_LATEST: latest
+
+jobs:
+  build-and-deploy:
+    name: Build and Deploy to Cloud Run
+    runs-on: ubuntu-latest
+    # Solo ejecuta si el workflow de Release terminó exitoso
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.9
+          
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          
+      - name: Run tests
+        run: |
+          coverage run -m pytest
+          coverage report --fail-under=80
+          
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+          
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+        
+      - name: Configure Docker for GCR
+        run: gcloud auth configure-docker ${{ env.GCP_REGION }}-docker.pkg.dev
+        
+      - name: Build Docker image
+        run: |
+          docker build --platform=linux/amd64 \
+            -t ${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.ARTIFACT_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }} \
+            -t ${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.ARTIFACT_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_LATEST }} \
+            .
+            
+      - name: Push Docker image
+        run: |
+          docker push ${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.ARTIFACT_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
+          docker push ${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.ARTIFACT_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_LATEST }}
+          
+      - name: Deploy to Cloud Run
+        run: |
+          gcloud run deploy ${{ env.SERVICE_NAME }} \
+            --image ${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.ARTIFACT_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }} \
+            --region ${{ env.GCP_REGION }} \
+            --platform managed \
+            --service-account ${{ env.SIGNING_SERVICE_ACCOUNT_EMAIL }} \
+            --set-env-vars HOST="0.0.0.0",DEBUG="false",PORT="8080",DATABASE_URL="${{ env.DATABASE_URL }}",AUTH_SERVICE_URL="${{ env.AUTH_SERVICE_URL }}" \
+            --memory 2Gi \
+            --cpu 2 \
+            --min-instances 1 \
+            --max-instances 1 \
+            --port 8080 \
+            --allow-unauthenticated
+            
+      - name: Get service URL
+        run: |
+          SERVICE_URL=$(gcloud run services describe ${{ env.SERVICE_NAME }} --region=${{ env.GCP_REGION }} --format="value(status.url)")
+          echo "Service deployed at: $SERVICE_URL"
+          echo "Health check: $SERVICE_URL/sales-plan/ping"
+
