@@ -125,6 +125,28 @@ class ScheduledVisitRepository(BaseRepository):
         except SQLAlchemyError as e:
             raise Exception(f"Error al obtener clientes de la visita: {str(e)}")
     
+    def get_by_id_and_seller(self, visit_id: str, seller_id: str) -> Optional[ScheduledVisit]:
+        """Obtiene una visita por ID y seller_id"""
+        try:
+            db_visit = (
+                self.session.query(ScheduledVisitDB)
+                .filter(
+                    ScheduledVisitDB.id == visit_id,
+                    ScheduledVisitDB.seller_id == seller_id
+                )
+                .first()
+            )
+            
+            if not db_visit:
+                return None
+            
+            # Obtener los clientes asociados
+            clients = self.get_clients_for_visit(visit_id)
+            
+            return self._db_to_model(db_visit, clients)
+        except SQLAlchemyError as e:
+            raise Exception(f"Error al obtener visita programada: {str(e)}")
+    
     def get_all(self) -> List[ScheduledVisit]:  # pragma: no cover
         """No requerido - implementación mínima"""
         pass
