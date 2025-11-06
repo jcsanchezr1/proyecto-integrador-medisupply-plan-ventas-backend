@@ -1,9 +1,11 @@
 {
 	"info": {
-		"_postman_id": "a1b2c3d4-e5f6-4g7h-8i9j-0k1l2m3n4o5p",
+		"_postman_id": "0c415fd3-be7c-42f4-8fff-290a58542f1e",
 		"name": "MediSupply Sales Plan API - Con Validaciones Completas",
 		"description": "Colección completa para validar el servicio de planes de ventas MediSupply con todas las validaciones",
-		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "2750860",
+		"_collection_link": "https://timecontrol.postman.co/workspace/TCT~e4bf613c-84ca-4624-ad9c-4c8c0259e211/collection/2750860-0c415fd3-be7c-42f4-8fff-290a58542f1e?action=share&source=collection_link&creator=2750860"
 	},
 	"item": [
 		{
@@ -124,7 +126,9 @@
 							"",
 							"console.log('Cliente generado:', emailCliente, 'Tipo:', randomInstitution, 'Especialidad:', randomSpecialty);"
 						],
-						"type": "text/javascript"
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
 					}
 				},
 				{
@@ -137,10 +141,13 @@
 							"const response = pm.response.json();",
 							"if (response.data && response.data.id) {",
 							"    pm.environment.set('cliente_created_id', response.data.id);",
+							"    pm.globals.set('cliente_created_id_0', response.data.id);",
 							"    console.log('Cliente creado con ID:', response.data.id);",
 							"}"
 						],
-						"type": "text/javascript"
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
 					}
 				}
 			],
@@ -243,17 +250,17 @@
 							"",
 							"const targetRevenue = (Math.random() * 1000000 + 50000).toFixed(2);",
 							"",
-						"const validClientId = pm.environment.get('valid_client_id') || 'a527df89-dc1f-4b30-9f2e-5c8a1b3d4e5f';",
-						"const validSellerId = pm.environment.get('valid_seller_id') || '8f1b7d3f-4e3b-4f5e-9b2a-7d2a6b9f1c05';",
-						"",
-						"pm.environment.set('plan_name_valido', randomPlan + ' ' + randomNum);",
-						"pm.environment.set('start_date', formatDate(startDate));",
-						"pm.environment.set('end_date', formatDate(endDate));",
-						"pm.environment.set('target_revenue', targetRevenue);",
-						"pm.environment.set('objectives', randomObjective + '. Objetivos adicionales: mejorar la eficiencia operativa y fortalecer las relaciones comerciales.');",
-						"pm.environment.set('valid_seller_id', validSellerId);",
-						"",
-						"console.log('Plan de ventas generado:', randomPlan + ' ' + randomNum);"
+							"const validClientId = pm.environment.get('valid_client_id') || 'a527df89-dc1f-4b30-9f2e-5c8a1b3d4e5f';",
+							"const validSellerId = pm.environment.get('valid_seller_id') || '8f1b7d3f-4e3b-4f5e-9b2a-7d2a6b9f1c05';",
+							"",
+							"pm.environment.set('plan_name_valido', randomPlan + ' ' + randomNum);",
+							"pm.environment.set('start_date', formatDate(startDate));",
+							"pm.environment.set('end_date', formatDate(endDate));",
+							"pm.environment.set('target_revenue', targetRevenue);",
+							"pm.environment.set('objectives', randomObjective + '. Objetivos adicionales: mejorar la eficiencia operativa y fortalecer las relaciones comerciales.');",
+							"pm.environment.set('valid_seller_id', validSellerId);",
+							"",
+							"console.log('Plan de ventas generado:', randomPlan + ' ' + randomNum);"
 						],
 						"type": "text/javascript"
 					}
@@ -839,17 +846,450 @@
 				}
 			},
 			"response": []
+		},
+		{
+			"name": "Crear Visita - Datos Válidos",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Definir el rango de fechas",
+							"const startDate = new Date(\"2025-12-01T00:00:00Z\");  // Fecha mínima",
+							"const endDate = new Date(\"2030-12-01T00:00:00Z\");    // Fecha máxima",
+							"",
+							"// Calcular un timestamp aleatorio entre ambas fechas",
+							"const randomTimestamp = startDate.getTime() + Math.random() * (endDate.getTime() - startDate.getTime());",
+							"",
+							"// Crear una nueva fecha con ese timestamp",
+							"const randomDate = new Date(randomTimestamp);",
+							"",
+							"// Formatear la fecha a DD-MM-YYYY",
+							"const day = String(randomDate.getDate()).padStart(2, '0');",
+							"const month = String(randomDate.getMonth() + 1).padStart(2, '0');",
+							"const year = randomDate.getFullYear();",
+							"const formattedDate = `${day}-${month}-${year}`;",
+							"",
+							"// Guardar la fecha como variable de entorno",
+							"pm.globals.set('randomVisitDate', formattedDate);"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status code is 201', function () {",
+							"    pm.response.to.have.status(201);",
+							"});",
+							"pm.test('Response has success structure', function () {",
+							"    const response = pm.response.json();",
+							"    pm.expect(response).to.have.property('success');",
+							"    pm.expect(response).to.have.property('message');",
+							"    pm.expect(response).to.have.property('data');",
+							"    pm.expect(response.success).to.be.true;",
+							"});",
+							"pm.test('Data contains plan information', function () {",
+							"    const response = pm.response.json();",
+							"    const data = response.data;",
+							"    pm.expect(data).to.have.property('id');",
+							"    pm.expect(data).to.have.property('seller_id');",
+							"    pm.expect(data).to.have.property('date');",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{auth_token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"date\": \"{{randomVisitDate}}\",\n    \"clients\": [\n        {\n            \"client_id\": \"{{cliente_created_id_0}}\"\n        }\n    ]\n}"
+				},
+				"url": {
+					"raw": "{{url_local_autorizador}}/sellers/8f1b7d3f-4e3b-4f5e-9b2a-7d2a6b9f1c05/scheduled-visits",
+					"host": [
+						"{{url_local_autorizador}}"
+					],
+					"path": [
+						"sellers",
+						"8f1b7d3f-4e3b-4f5e-9b2a-7d2a6b9f1c05",
+						"scheduled-visits"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Crear Visita - Vendedor no existe",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status code is 400', function () {",
+							"    pm.response.to.have.status(400);",
+							"});",
+							"pm.test('Response has success structure', function () {",
+							"    const response = pm.response.json();",
+							"    pm.expect(response).to.have.property('success');",
+							"    pm.expect(response).to.have.property('error');",
+							"    pm.expect(response).to.have.property('details');",
+							"    pm.expect(response.success).to.be.false;",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{auth_token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"date\": \"20-12-2025\",\n    \"clients\": [\n        {\n            \"client_id\": \"{{cliente_created_id_0}}\"\n        }\n    ]\n}"
+				},
+				"url": {
+					"raw": "{{url_local_autorizador}}/sellers/99999999-9999-9999-9999-999999999999/scheduled-visits",
+					"host": [
+						"{{url_local_autorizador}}"
+					],
+					"path": [
+						"sellers",
+						"99999999-9999-9999-9999-999999999999",
+						"scheduled-visits"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Crear Visita - Cliente no existe",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status code is 400', function () {",
+							"    pm.response.to.have.status(400);",
+							"});",
+							"pm.test('Response has success structure', function () {",
+							"    const response = pm.response.json();",
+							"    pm.expect(response).to.have.property('success');",
+							"    pm.expect(response).to.have.property('error');",
+							"    pm.expect(response).to.have.property('details');",
+							"    pm.expect(response.success).to.be.false;",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{auth_token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"date\": \"20-12-2025\",\n    \"clients\": [\n        {\n            \"client_id\": \"99999999-9999-9999-9999-999999999999\"\n        }\n    ]\n}"
+				},
+				"url": {
+					"raw": "{{url_local_autorizador}}/sellers/8f1b7d3f-4e3b-4f5e-9b2a-7d2a6b9f1c05/scheduled-visits",
+					"host": [
+						"{{url_local_autorizador}}"
+					],
+					"path": [
+						"sellers",
+						"8f1b7d3f-4e3b-4f5e-9b2a-7d2a6b9f1c05",
+						"scheduled-visits"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Crear Visita - Fecha Invalida",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status code is 400', function () {",
+							"    pm.response.to.have.status(400);",
+							"});",
+							"pm.test('Response has success structure', function () {",
+							"    const response = pm.response.json();",
+							"    pm.expect(response).to.have.property('success');",
+							"    pm.expect(response).to.have.property('error');",
+							"    pm.expect(response).to.have.property('details');",
+							"    pm.expect(response.success).to.be.false;",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{auth_token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"date\": \"Invalid\",\n    \"clients\": [\n        {\n            \"client_id\": \"{{cliente_created_id_0}}\"\n        }\n    ]\n}"
+				},
+				"url": {
+					"raw": "{{url_local_autorizador}}/sellers/8f1b7d3f-4e3b-4f5e-9b2a-7d2a6b9f1c05/scheduled-visits",
+					"host": [
+						"{{url_local_autorizador}}"
+					],
+					"path": [
+						"sellers",
+						"8f1b7d3f-4e3b-4f5e-9b2a-7d2a6b9f1c05",
+						"scheduled-visits"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Consultar Visita - Todos",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status code is 200', function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"pm.test('Response has success structure', function () {",
+							"    const response = pm.response.json();",
+							"    pm.expect(response).to.have.property('success');",
+							"    pm.expect(response).to.have.property('message');",
+							"    pm.expect(response).to.have.property('data');",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{auth_token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{url_local_autorizador}}/sellers/8f1b7d3f-4e3b-4f5e-9b2a-7d2a6b9f1c05/scheduled-visits",
+					"host": [
+						"{{url_local_autorizador}}"
+					],
+					"path": [
+						"sellers",
+						"8f1b7d3f-4e3b-4f5e-9b2a-7d2a6b9f1c05",
+						"scheduled-visits"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Consultar Visita - Filtro por fecha",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status code is 200', function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"pm.test('Response has success structure', function () {",
+							"    const response = pm.response.json();",
+							"    pm.expect(response).to.have.property('success');",
+							"    pm.expect(response).to.have.property('message');",
+							"    pm.expect(response).to.have.property('data');",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{auth_token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{url_local_autorizador}}/sellers/8f1b7d3f-4e3b-4f5e-9b2a-7d2a6b9f1c05/scheduled-visits?date={{randomVisitDate}}",
+					"host": [
+						"{{url_local_autorizador}}"
+					],
+					"path": [
+						"sellers",
+						"8f1b7d3f-4e3b-4f5e-9b2a-7d2a6b9f1c05",
+						"scheduled-visits"
+					],
+					"query": [
+						{
+							"key": "date",
+							"value": "{{randomVisitDate}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Consultar Visita - Vendedor no existe",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status code is 400', function () {",
+							"    pm.response.to.have.status(400);",
+							"});",
+							"pm.test('Response has success structure', function () {",
+							"    const response = pm.response.json();",
+							"    pm.expect(response).to.have.property('success');",
+							"    pm.expect(response).to.have.property('error');",
+							"    pm.expect(response).to.have.property('details');",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{auth_token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{url_local_autorizador}}/sellers/99999999-9999-9999-9999-999999999999/scheduled-visits?date=20-12-2025",
+					"host": [
+						"{{url_local_autorizador}}"
+					],
+					"path": [
+						"sellers",
+						"99999999-9999-9999-9999-999999999999",
+						"scheduled-visits"
+					],
+					"query": [
+						{
+							"key": "date",
+							"value": "20-12-2025"
+						}
+					]
+				}
+			},
+			"response": []
 		}
 	],
 	"variable": [
 		{
 			"key": "url_local_autorizador",
 			"value": "http://localhost:8082",
-			"type": "string"
-		},
-		{
-			"key": "auth_token",
-			"value": "",
 			"type": "string"
 		}
 	]
