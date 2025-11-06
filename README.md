@@ -63,6 +63,18 @@ proyecto-integrador-medisupply-plan-ventas-backend/
    python app.py
    ```
 
+### Pruebas unitarias
+
+1. Correr pruebas unitarias con coverage:
+   ```bash
+   coverage run -m unittest discover -s tests
+   ```
+
+1. Ver reporte de cobertura de las pruebas unitarias
+   ```bash
+   coverage report
+   ```
+
 ## Endpoints
 
 ### Health Check

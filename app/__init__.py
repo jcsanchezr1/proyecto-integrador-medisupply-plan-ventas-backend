@@ -33,6 +33,7 @@ def configure_routes(app):  # pragma: no cover
     from .controllers.health_controller import HealthCheckView
     from .controllers.sales_plan_controller import SalesPlanController, SalesPlanDeleteAllController
     from .controllers.sales_plan_create_controller import SalesPlanCreateController
+    from .controllers.scheduled_visit_controller import ScheduledVisitController
     
     api = Api(app)
     
@@ -43,4 +44,8 @@ def configure_routes(app):  # pragma: no cover
     api.add_resource(SalesPlanCreateController, '/sales-plan/create')
     api.add_resource(SalesPlanController, '/sales-plan')
     api.add_resource(SalesPlanDeleteAllController, '/sales-plan/delete-all')
-    print("Rutas configuradas: /sales-plan/ping, /sales-plan/create, /sales-plan, /sales-plan/delete-all")
+    
+    # Rutas para visitas programadas
+    api.add_resource(ScheduledVisitController, '/sellers/<string:seller_id>/scheduled-visits')
+    
+    print("Rutas configuradas: /sales-plan/ping, /sales-plan/create, /sales-plan, /sales-plan/delete-all, /sellers/<seller_id>/scheduled-visits")
