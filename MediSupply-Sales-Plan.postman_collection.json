@@ -898,7 +898,9 @@
 							"    pm.expect(data).to.have.property('id');",
 							"    pm.expect(data).to.have.property('seller_id');",
 							"    pm.expect(data).to.have.property('date');",
-							"});"
+							"    pm.globals.set('visit_id', response.data.id);",
+							"});",
+							""
 						],
 						"type": "text/javascript",
 						"packages": {},
