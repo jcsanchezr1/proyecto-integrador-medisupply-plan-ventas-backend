@@ -526,4 +526,42 @@ class TestScheduledVisitRepository:
         assert len(results) == 1
         # Verificar que filter se llamó al menos 2 veces (seller_id y date)
         assert chain.filter.call_count >= 1
+    
+    @patch('app.repositories.scheduled_visit_repository.ScheduledVisitDB')
+    def test_get_by_id_and_seller_success(self, mock_visit_db, repository, mock_session, sample_visit):
+        """Test obtener visita por ID y seller_id exitosamente"""
+        mock_db_visit = Mock()
+        mock_db_visit.id = 'visit1'
+        mock_db_visit.seller_id = 'seller1'
+        mock_db_visit.date = date(2025, 12, 1)
+        mock_db_visit.created_at = datetime.now()
+        mock_db_visit.updated_at = datetime.now()
+        
+        chain = mock_session.query.return_value.filter.return_value
+        chain.first.return_value = mock_db_visit
+        
+        # Mockear get_clients_for_visit
+        with patch.object(repository, 'get_clients_for_visit', return_value=sample_visit.clients):
+            result = repository.get_by_id_and_seller('visit1', 'seller1')
+            
+            assert result is not None
+            assert result.id == 'visit1'
+            assert result.seller_id == 'seller1'
+    
+    @patch('app.repositories.scheduled_visit_repository.ScheduledVisitDB')
+    def test_get_by_id_and_seller_not_found(self, mock_visit_db, repository, mock_session):
+        """Test obtener visita que no existe"""
+        chain = mock_session.query.return_value.filter.return_value
+        chain.first.return_value = None
+        
+        result = repository.get_by_id_and_seller('visit1', 'seller1')
+        
+        assert result is None
+    
+    def test_get_by_id_and_seller_sqlalchemy_error(self, repository, mock_session):
+        """Test error de SQLAlchemy en get_by_id_and_seller"""
+        mock_session.query.side_effect = SQLAlchemyError("Database error")
+        
+        with pytest.raises(Exception, match="Error al obtener visita programada"):
+            repository.get_by_id_and_seller('visit1', 'seller1')
 

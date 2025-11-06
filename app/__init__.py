@@ -34,6 +34,7 @@ def configure_routes(app):  # pragma: no cover
     from .controllers.sales_plan_controller import SalesPlanController, SalesPlanDeleteAllController
     from .controllers.sales_plan_create_controller import SalesPlanCreateController
     from .controllers.scheduled_visit_controller import ScheduledVisitController
+    from .controllers.scheduled_visit_detail_controller import ScheduledVisitDetailController
     
     api = Api(app)
     
@@ -45,7 +46,7 @@ def configure_routes(app):  # pragma: no cover
     api.add_resource(SalesPlanController, '/sales-plan')
     api.add_resource(SalesPlanDeleteAllController, '/sales-plan/delete-all')
     
-    # Rutas para visitas programadas
     api.add_resource(ScheduledVisitController, '/sellers/<string:seller_id>/scheduled-visits')
+    api.add_resource(ScheduledVisitDetailController, '/sellers/<string:seller_id>/route/<string:visit_id>')
     
-    print("Rutas configuradas: /sales-plan/ping, /sales-plan/create, /sales-plan, /sales-plan/delete-all, /sellers/<seller_id>/scheduled-visits")
+    print("Rutas configuradas: /sales-plan/ping, /sales-plan/create, /sales-plan, /sales-plan/delete-all, /sellers/<seller_id>/scheduled-visits, /sellers/<seller_id>/route/<visit_id>")
