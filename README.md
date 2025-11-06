@@ -67,7 +67,7 @@ proyecto-integrador-medisupply-plan-ventas-backend/
 
 1. Correr pruebas unitarias con coverage:
    ```bash
-   coverage run -m unittest discover -s tests
+   coverage run -m pytest
    ```
 
 1. Ver reporte de cobertura de las pruebas unitarias
