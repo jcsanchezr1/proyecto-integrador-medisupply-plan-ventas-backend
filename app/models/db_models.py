@@ -1,7 +1,7 @@
 """
 Modelos de base de datos para plan de ventas
 """
-from sqlalchemy import Column, Integer, String, DateTime, Float, Text, ForeignKey
+from sqlalchemy import Column, Integer, String, DateTime, Float, Text, ForeignKey, Date
 from sqlalchemy.ext.declarative import declarative_base
 from datetime import datetime
 
@@ -22,4 +22,25 @@ class SalesPlanDB(Base):
     objectives = Column(Text, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+class ScheduledVisitDB(Base):
+    """Modelo de base de datos para visitas programadas"""
+    __tablename__ = 'scheduled_visits'
+    
+    id = Column(String(36), primary_key=True)
+    seller_id = Column(String(36), nullable=False)
+    date = Column(Date, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+class ScheduledVisitClientDB(Base):
+    """Modelo de base de datos para clientes asociados a visitas programadas"""
+    __tablename__ = 'scheduled_visit_clients'
+    
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    visit_id = Column(String(36), ForeignKey('scheduled_visits.id', ondelete='CASCADE'), nullable=False)
+    client_id = Column(String(36), nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
 
