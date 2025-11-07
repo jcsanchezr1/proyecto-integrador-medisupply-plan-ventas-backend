@@ -564,4 +564,126 @@ class TestScheduledVisitRepository:
         
         with pytest.raises(Exception, match="Error al obtener visita programada"):
             repository.get_by_id_and_seller('visit1', 'seller1')
+    
+    @patch('app.repositories.scheduled_visit_repository.ScheduledVisitDB')
+    @patch('app.repositories.scheduled_visit_repository.ScheduledVisitClientDB')
+    def test_create_visit_sets_status_scheduled(self, mock_client_db, mock_visit_db, repository, sample_visit, mock_session):
+        """Test que al crear una visita el status de los clientes se setea como SCHEDULED"""
+        # Configurar mocks de BD
+        mock_db_visit = Mock()
+        mock_db_visit.id = sample_visit.id
+        mock_db_visit.seller_id = sample_visit.seller_id
+        mock_db_visit.date = sample_visit.date
+        mock_db_visit.created_at = datetime.now()
+        mock_db_visit.updated_at = datetime.now()
+        
+        mock_visit_db.return_value = mock_db_visit
+        
+        # Capturar las llamadas al constructor de ScheduledVisitClientDB
+        client_instances = []
+        def mock_client_constructor(*args, **kwargs):
+            instance = Mock()
+            client_instances.append(kwargs)
+            return instance
+        
+        mock_client_db.side_effect = mock_client_constructor
+        
+        # Mockear _db_to_model
+        repository._db_to_model = Mock(return_value=sample_visit)
+        
+        result = repository.create(sample_visit)
+        
+        # Verificar que se crearon 2 clientes
+        assert len(client_instances) == 2
+        
+        # Verificar que ambos clientes tienen status='SCHEDULED'
+        for client_kwargs in client_instances:
+            assert 'status' in client_kwargs
+            assert client_kwargs['status'] == 'SCHEDULED'
+            assert 'visit_id' in client_kwargs
+            assert 'client_id' in client_kwargs
+    
+    @patch('app.repositories.scheduled_visit_repository.ScheduledVisitClientDB')
+    def test_get_client_visit_success(self, mock_client_db, repository, mock_session):
+        """Test obtener cliente de visita exitosamente"""
+        mock_db_client = Mock()
+        mock_db_client.visit_id = 'visit1'
+        mock_db_client.client_id = 'client1'
+        mock_db_client.status = 'SCHEDULED'
+        
+        # Configurar atributos de la clase mockeada
+        mock_client_db.visit_id = Mock()
+        mock_client_db.client_id = Mock()
+        
+        chain = mock_session.query.return_value.filter.return_value
+        chain.first.return_value = mock_db_client
+        
+        result = repository.get_client_visit('visit1', 'client1')
+        
+        assert result is not None
+        assert result.visit_id == 'visit1'
+        assert result.client_id == 'client1'
+    
+    @patch('app.repositories.scheduled_visit_repository.ScheduledVisitClientDB')
+    def test_get_client_visit_not_found(self, mock_client_db, repository, mock_session):
+        """Test obtener cliente de visita que no existe"""
+        # Configurar atributos de la clase mockeada
+        mock_client_db.visit_id = Mock()
+        mock_client_db.client_id = Mock()
+        
+        chain = mock_session.query.return_value.filter.return_value
+        chain.first.return_value = None
+        
+        result = repository.get_client_visit('visit1', 'client1')
+        
+        assert result is None
+    
+    def test_get_client_visit_sqlalchemy_error(self, repository, mock_session):
+        """Test error de SQLAlchemy en get_client_visit"""
+        mock_session.query.side_effect = SQLAlchemyError("Database error")
+        
+        with pytest.raises(Exception, match="Error al obtener cliente de la visita"):
+            repository.get_client_visit('visit1', 'client1')
+    
+    def test_update_client_visit_success(self, repository, mock_session):
+        """Test actualizar cliente de visita exitosamente"""
+        mock_db_client = Mock()
+        mock_db_client.status = 'SCHEDULED'
+        mock_db_client.find = None
+        
+        with patch.object(repository, 'get_client_visit', return_value=mock_db_client):
+            update_data = {
+                'status': 'COMPLETED',
+                'find': 'Hallazgos importantes'
+            }
+            
+            result = repository.update_client_visit('visit1', 'client1', update_data)
+            
+            assert result is True
+            assert mock_db_client.status == 'COMPLETED'
+            assert mock_db_client.find == 'Hallazgos importantes'
+            mock_session.commit.assert_called_once()
+    
+    def test_update_client_visit_not_found(self, repository, mock_session):
+        """Test actualizar cliente de visita que no existe"""
+        with patch.object(repository, 'get_client_visit', return_value=None):
+            update_data = {'status': 'COMPLETED'}
+            
+            result = repository.update_client_visit('visit1', 'client1', update_data)
+            
+            assert result is False
+    
+    def test_update_client_visit_sqlalchemy_error(self, repository, mock_session):
+        """Test error de SQLAlchemy en update_client_visit"""
+        mock_db_client = Mock()
+        
+        with patch.object(repository, 'get_client_visit', return_value=mock_db_client):
+            mock_session.commit.side_effect = SQLAlchemyError("Database error")
+            
+            update_data = {'status': 'COMPLETED'}
+            
+            with pytest.raises(Exception, match="Error al actualizar cliente de la visita"):
+                repository.update_client_visit('visit1', 'client1', update_data)
+            
+            mock_session.rollback.assert_called_once()
 
