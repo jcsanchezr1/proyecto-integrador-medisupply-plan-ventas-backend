@@ -2,10 +2,25 @@
 Tests para el controlador ScheduledVisitUpdateController
 """
 import pytest
+import sys
 from unittest.mock import patch, Mock, MagicMock
 from flask import Flask
 from io import BytesIO
 from app.exceptions.custom_exceptions import SalesPlanValidationError, SalesPlanBusinessLogicError
+
+
+# Mock de CloudStorageService para evitar conflictos de importación con google.cloud
+class MockCloudStorageService:
+    def __init__(self, config=None):
+        pass
+    
+    def upload_file(self, file, filename):
+        return True, "Archivo subido exitosamente", "https://storage.googleapis.com/bucket/file.pdf"
+
+
+# Aplicar el mock antes de importar el controlador
+sys.modules['app.services.cloud_storage_service'] = Mock()
+sys.modules['app.services.cloud_storage_service'].CloudStorageService = MockCloudStorageService
 
 
 class TestScheduledVisitUpdateController:
@@ -49,7 +64,9 @@ class TestScheduledVisitUpdateController:
             'visit_id': 'visit1',
             'client_id': 'client1',
             'status': 'COMPLETED',
-            'find': 'Hallazgos importantes'
+            'find': 'Hallazgos importantes',
+            'filename': 'visit1_client1_abc123.pdf',
+            'filename_url': 'https://storage.googleapis.com/bucket/file.pdf'
         }
         
         # Crear un archivo mock de 1 MB
@@ -105,6 +122,33 @@ class TestScheduledVisitUpdateController:
             assert status == 400
             assert response['success'] is False
             assert '10 MB' in response['details']
+    
+    @patch('app.services.scheduled_visit_update_service.ScheduledVisitUpdateService.update_client_visit')
+    def test_post_file_upload_fails(self, mock_update, app):
+        """Test cuando falla la subida del archivo a Cloud Storage"""
+        from app.exceptions.custom_exceptions import SalesPlanBusinessLogicError
+        
+        # El servicio lanza excepción cuando falla la subida
+        mock_update.side_effect = SalesPlanBusinessLogicError("Error al subir archivo: Error de Cloud Storage")
+        
+        # Crear un archivo mock de 1 MB
+        file_content = b'x' * (1024 * 1024)
+        
+        with app.test_request_context(
+            data={
+                'find': 'Hallazgos importantes',
+                'file': (BytesIO(file_content), 'test.pdf')
+            },
+            content_type='multipart/form-data'
+        ):
+            from app.controllers.scheduled_visit_update_controller import ScheduledVisitUpdateController
+            controller = ScheduledVisitUpdateController()
+            
+            response, status = controller.post('seller1', 'visit1', 'client1')
+            
+            assert status == 500
+            assert response['success'] is False
+            assert 'Error al subir archivo' in response['details']
     
     @patch('app.services.scheduled_visit_update_service.ScheduledVisitUpdateService.update_client_visit')
     def test_post_visit_not_found(self, mock_update, app):

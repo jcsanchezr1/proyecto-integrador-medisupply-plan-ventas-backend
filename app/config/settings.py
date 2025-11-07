@@ -15,6 +15,19 @@ class Config:
     APP_NAME = 'MediSupply Sales Plan Backend'
     APP_VERSION = '1.0.0'
 
+    # Configuración de Google Cloud Storage
+    GCP_PROJECT_ID = os.getenv('GCP_PROJECT_ID', 'soluciones-cloud-2024-02')
+    BUCKET_NAME = os.getenv('BUCKET_NAME', 'medisupply-images-bucket')
+    BUCKET_FOLDER = os.getenv('BUCKET_FOLDER', 'sales-plan')
+    BUCKET_LOCATION = os.getenv('BUCKET_LOCATION', 'us-central1')
+    GOOGLE_APPLICATION_CREDENTIALS = os.getenv('GOOGLE_APPLICATION_CREDENTIALS', '')
+    
+    # Configuración para URLs firmadas con IAM signBlob
+    SIGNING_SERVICE_ACCOUNT_EMAIL = os.getenv('SIGNING_SERVICE_ACCOUNT_EMAIL', '')
+    
+    # Configuración de tamaño máximo de archivos (10 MB por defecto)
+    MAX_CONTENT_LENGTH = int(os.getenv('MAX_CONTENT_LENGTH', str(10 * 1024 * 1024)))
+
 
 class DevelopmentConfig(Config):
     """Configuración para desarrollo"""
