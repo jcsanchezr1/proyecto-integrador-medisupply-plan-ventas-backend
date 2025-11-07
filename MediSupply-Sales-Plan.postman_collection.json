@@ -1286,6 +1286,488 @@
 				}
 			},
 			"response": []
+		},
+		{
+			"name": "Consultar detalle Visita - Exitoso",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status code is 200', function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"pm.test('Response has success structure', function () {",
+							"    const response = pm.response.json();",
+							"    pm.expect(response).to.have.property('success');",
+							"    pm.expect(response).to.have.property('message');",
+							"    pm.expect(response).to.have.property('data');",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{auth_token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{url_local_autorizador}}/sellers/8f1b7d3f-4e3b-4f5e-9b2a-7d2a6b9f1c05/route/{{visit_id}}",
+					"host": [
+						"{{url_local_autorizador}}"
+					],
+					"path": [
+						"sellers",
+						"8f1b7d3f-4e3b-4f5e-9b2a-7d2a6b9f1c05",
+						"route",
+						"{{visit_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Consultar detalle Visita - Vendedor no existe",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status code is 404', function () {",
+							"    pm.response.to.have.status(404);",
+							"});",
+							"pm.test('Response has success structure', function () {",
+							"    const response = pm.response.json();",
+							"    pm.expect(response).to.have.property('success');",
+							"    pm.expect(response).to.have.property('error');",
+							"    pm.expect(response).to.have.property('details');",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{auth_token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{url_local_autorizador}}/sellers/99999999-9999-9999-9999-999999999999/route/{{visit_id}}",
+					"host": [
+						"{{url_local_autorizador}}"
+					],
+					"path": [
+						"sellers",
+						"99999999-9999-9999-9999-999999999999",
+						"route",
+						"{{visit_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Crear Hallazgo - Datos Válidos",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Definir el rango de fechas",
+							"const startDate = new Date(\"2025-12-01T00:00:00Z\");  // Fecha mínima",
+							"const endDate = new Date(\"2030-12-01T00:00:00Z\");    // Fecha máxima",
+							"",
+							"// Calcular un timestamp aleatorio entre ambas fechas",
+							"const randomTimestamp = startDate.getTime() + Math.random() * (endDate.getTime() - startDate.getTime());",
+							"",
+							"// Crear una nueva fecha con ese timestamp",
+							"const randomDate = new Date(randomTimestamp);",
+							"",
+							"// Formatear la fecha a DD-MM-YYYY",
+							"const day = String(randomDate.getDate()).padStart(2, '0');",
+							"const month = String(randomDate.getMonth() + 1).padStart(2, '0');",
+							"const year = randomDate.getFullYear();",
+							"const formattedDate = `${day}-${month}-${year}`;",
+							"",
+							"// Guardar la fecha como variable de entorno",
+							"pm.globals.set('randomVisitDate', formattedDate);"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status code is 200', function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"pm.test('Response has success structure', function () {",
+							"    const response = pm.response.json();",
+							"    pm.expect(response).to.have.property('success');",
+							"    pm.expect(response).to.have.property('message');",
+							"    pm.expect(response).to.have.property('data');",
+							"    pm.expect(response.success).to.be.true;",
+							"});",
+							"pm.test('Data contains plan information', function () {",
+							"    const response = pm.response.json();",
+							"    const data = response.data;",
+							"    pm.expect(data).to.have.property('visit_id');",
+							"    pm.expect(data).to.have.property('client_id');",
+							"    pm.expect(data).to.have.property('status');",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"disabled": true
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{auth_token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "find",
+							"value": "Hallazgo creado",
+							"type": "text"
+						},
+						{
+							"key": "file",
+							"type": "file",
+							"src": []
+						}
+					]
+				},
+				"url": {
+					"raw": "{{url_local_autorizador}}/sellers/8f1b7d3f-4e3b-4f5e-9b2a-7d2a6b9f1c05/route/{{visit_id}}/client/{{cliente_created_id_0}}",
+					"host": [
+						"{{url_local_autorizador}}"
+					],
+					"path": [
+						"sellers",
+						"8f1b7d3f-4e3b-4f5e-9b2a-7d2a6b9f1c05",
+						"route",
+						"{{visit_id}}",
+						"client",
+						"{{cliente_created_id_0}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Crear Hallazgo - Vendedor no existe",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Definir el rango de fechas",
+							"const startDate = new Date(\"2025-12-01T00:00:00Z\");  // Fecha mínima",
+							"const endDate = new Date(\"2030-12-01T00:00:00Z\");    // Fecha máxima",
+							"",
+							"// Calcular un timestamp aleatorio entre ambas fechas",
+							"const randomTimestamp = startDate.getTime() + Math.random() * (endDate.getTime() - startDate.getTime());",
+							"",
+							"// Crear una nueva fecha con ese timestamp",
+							"const randomDate = new Date(randomTimestamp);",
+							"",
+							"// Formatear la fecha a DD-MM-YYYY",
+							"const day = String(randomDate.getDate()).padStart(2, '0');",
+							"const month = String(randomDate.getMonth() + 1).padStart(2, '0');",
+							"const year = randomDate.getFullYear();",
+							"const formattedDate = `${day}-${month}-${year}`;",
+							"",
+							"// Guardar la fecha como variable de entorno",
+							"pm.globals.set('randomVisitDate', formattedDate);"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status code is 404', function () {",
+							"    pm.response.to.have.status(404);",
+							"});",
+							"pm.test('Response has success structure', function () {",
+							"    const response = pm.response.json();",
+							"    pm.expect(response).to.have.property('success');",
+							"    pm.expect(response).to.have.property('error');",
+							"    pm.expect(response).to.have.property('details');",
+							"    pm.expect(response.success).to.be.false;",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"disabled": true
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{auth_token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "find",
+							"value": "Hallazgo creado",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{url_local_autorizador}}/sellers/99999999-9999-9999-9999-999999999999/route/{{visit_id}}/client/{{cliente_created_id_0}}",
+					"host": [
+						"{{url_local_autorizador}}"
+					],
+					"path": [
+						"sellers",
+						"99999999-9999-9999-9999-999999999999",
+						"route",
+						"{{visit_id}}",
+						"client",
+						"{{cliente_created_id_0}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Crear Hallazgo - Visita no existe",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Definir el rango de fechas",
+							"const startDate = new Date(\"2025-12-01T00:00:00Z\");  // Fecha mínima",
+							"const endDate = new Date(\"2030-12-01T00:00:00Z\");    // Fecha máxima",
+							"",
+							"// Calcular un timestamp aleatorio entre ambas fechas",
+							"const randomTimestamp = startDate.getTime() + Math.random() * (endDate.getTime() - startDate.getTime());",
+							"",
+							"// Crear una nueva fecha con ese timestamp",
+							"const randomDate = new Date(randomTimestamp);",
+							"",
+							"// Formatear la fecha a DD-MM-YYYY",
+							"const day = String(randomDate.getDate()).padStart(2, '0');",
+							"const month = String(randomDate.getMonth() + 1).padStart(2, '0');",
+							"const year = randomDate.getFullYear();",
+							"const formattedDate = `${day}-${month}-${year}`;",
+							"",
+							"// Guardar la fecha como variable de entorno",
+							"pm.globals.set('randomVisitDate', formattedDate);"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status code is 404', function () {",
+							"    pm.response.to.have.status(404);",
+							"});",
+							"pm.test('Response has success structure', function () {",
+							"    const response = pm.response.json();",
+							"    pm.expect(response).to.have.property('success');",
+							"    pm.expect(response).to.have.property('error');",
+							"    pm.expect(response).to.have.property('details');",
+							"    pm.expect(response.success).to.be.false;",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"disabled": true
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{auth_token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "find",
+							"value": "Hallazgo creado",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{url_local_autorizador}}/sellers/8f1b7d3f-4e3b-4f5e-9b2a-7d2a6b9f1c05/route/99999999-9999-9999-9999-999999999999/client/{{cliente_created_id_0}}",
+					"host": [
+						"{{url_local_autorizador}}"
+					],
+					"path": [
+						"sellers",
+						"8f1b7d3f-4e3b-4f5e-9b2a-7d2a6b9f1c05",
+						"route",
+						"99999999-9999-9999-9999-999999999999",
+						"client",
+						"{{cliente_created_id_0}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Crear Hallazgo - Cliente no existe",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Definir el rango de fechas",
+							"const startDate = new Date(\"2025-12-01T00:00:00Z\");  // Fecha mínima",
+							"const endDate = new Date(\"2030-12-01T00:00:00Z\");    // Fecha máxima",
+							"",
+							"// Calcular un timestamp aleatorio entre ambas fechas",
+							"const randomTimestamp = startDate.getTime() + Math.random() * (endDate.getTime() - startDate.getTime());",
+							"",
+							"// Crear una nueva fecha con ese timestamp",
+							"const randomDate = new Date(randomTimestamp);",
+							"",
+							"// Formatear la fecha a DD-MM-YYYY",
+							"const day = String(randomDate.getDate()).padStart(2, '0');",
+							"const month = String(randomDate.getMonth() + 1).padStart(2, '0');",
+							"const year = randomDate.getFullYear();",
+							"const formattedDate = `${day}-${month}-${year}`;",
+							"",
+							"// Guardar la fecha como variable de entorno",
+							"pm.globals.set('randomVisitDate', formattedDate);"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status code is 404', function () {",
+							"    pm.response.to.have.status(404);",
+							"});",
+							"pm.test('Response has success structure', function () {",
+							"    const response = pm.response.json();",
+							"    pm.expect(response).to.have.property('success');",
+							"    pm.expect(response).to.have.property('error');",
+							"    pm.expect(response).to.have.property('details');",
+							"    pm.expect(response.success).to.be.false;",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"disabled": true
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{auth_token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "find",
+							"value": "Hallazgo creado",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{url_local_autorizador}}/sellers/8f1b7d3f-4e3b-4f5e-9b2a-7d2a6b9f1c05/route/{{visit_id}}/client/99999999-9999-9999-9999-999999999999",
+					"host": [
+						"{{url_local_autorizador}}"
+					],
+					"path": [
+						"sellers",
+						"8f1b7d3f-4e3b-4f5e-9b2a-7d2a6b9f1c05",
+						"route",
+						"{{visit_id}}",
+						"client",
+						"99999999-9999-9999-9999-999999999999"
+					]
+				}
+			},
+			"response": []
 		}
 	],
 	"variable": [

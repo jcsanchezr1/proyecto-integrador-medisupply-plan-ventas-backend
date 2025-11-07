@@ -33,4 +33,7 @@ gunicorn==21.2.0
 pytest==8.3.4
 pytest-mock==3.14.0
 pytest-cov==6.0.0
+google-cloud-storage==2.18.2
+google-cloud==0.34.0
+Pillow==10.4.0
 

@@ -51,7 +51,8 @@ class ScheduledVisitRepository(BaseRepository):
             for client in scheduled_visit.clients:
                 db_client = ScheduledVisitClientDB(
                     visit_id=scheduled_visit.id,
-                    client_id=client.client_id
+                    client_id=client.client_id,
+                    status='SCHEDULED'
                 )
                 self.session.add(db_client)
             
@@ -146,6 +147,41 @@ class ScheduledVisitRepository(BaseRepository):
             return self._db_to_model(db_visit, clients)
         except SQLAlchemyError as e:
             raise Exception(f"Error al obtener visita programada: {str(e)}")
+    
+    def get_client_visit(self, visit_id: str, client_id: str) -> Optional[Any]:
+        """Obtiene un registro específico de cliente en una visita"""
+        try:
+            db_client = (
+                self.session.query(ScheduledVisitClientDB)
+                .filter(
+                    ScheduledVisitClientDB.visit_id == visit_id,
+                    ScheduledVisitClientDB.client_id == client_id
+                )
+                .first()
+            )
+            
+            return db_client
+        except SQLAlchemyError as e:
+            raise Exception(f"Error al obtener cliente de la visita: {str(e)}")
+    
+    def update_client_visit(self, visit_id: str, client_id: str, update_data: dict) -> bool:
+        """Actualiza un cliente de una visita"""
+        try:
+            db_client = self.get_client_visit(visit_id, client_id)
+            
+            if not db_client:
+                return False
+            
+            # Actualizar los campos proporcionados
+            for key, value in update_data.items():
+                if hasattr(db_client, key):
+                    setattr(db_client, key, value)
+            
+            self.session.commit()
+            return True
+        except SQLAlchemyError as e:
+            self.session.rollback()
+            raise Exception(f"Error al actualizar cliente de la visita: {str(e)}")
     
     def get_all(self) -> List[ScheduledVisit]:  # pragma: no cover
         """No requerido - implementación mínima"""
