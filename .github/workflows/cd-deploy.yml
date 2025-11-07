@@ -18,6 +18,9 @@ env:
   DATABASE_URL: ${{ vars.DATABASE_URL }}
   SIGNING_SERVICE_ACCOUNT_EMAIL: ${{ vars.SIGNING_SERVICE_ACCOUNT_EMAIL }}
   AUTH_SERVICE_URL: ${{ vars.AUTH_SERVICE_URL }}
+  BUCKET_NAME: ${{ vars.BUCKET_NAME }}
+  BUCKET_FOLDER: ${{ vars.BUCKET_FOLDER }}
+  BUCKET_LOCATION: ${{ vars.BUCKET_LOCATION }}
 
   # Configuración de la imagen
   IMAGE_TAG: ${{ github.sha }}
@@ -79,7 +82,7 @@ jobs:
             --region ${{ env.GCP_REGION }} \
             --platform managed \
             --service-account ${{ env.SIGNING_SERVICE_ACCOUNT_EMAIL }} \
-            --set-env-vars HOST="0.0.0.0",DEBUG="false",DATABASE_URL="${{ env.DATABASE_URL }}",AUTH_SERVICE_URL="${{ env.AUTH_SERVICE_URL }}" \
+            --set-env-vars HOST="0.0.0.0",DEBUG="false",DATABASE_URL="${{ env.DATABASE_URL }}",AUTH_SERVICE_URL="${{ env.AUTH_SERVICE_URL }}",BUCKET_NAME="${{ env.BUCKET_NAME }}",BUCKET_FOLDER="${{ env.BUCKET_FOLDER }}",BUCKET_LOCATION="${{ env.BUCKET_LOCATION }},GCP_PROJECT_ID="${{ env.GCP_PROJECT_ID }},SIGNING_SERVICE_ACCOUNT_EMAIL="${{ env.SIGNING_SERVICE_ACCOUNT_EMAIL }}" \
             --memory 2Gi \
             --cpu 2 \
             --min-instances 1 \
