@@ -7,8 +7,9 @@ from unittest.mock import Mock, patch
 from datetime import date
 from io import BytesIO
 
-# Mock de CloudStorageService para evitar conflictos de importación con google.cloud
+# Mock de CloudStorageService y PubSubService para evitar conflictos de importación con google.cloud
 sys.modules['app.services.cloud_storage_service'] = Mock()
+sys.modules['app.services.pubsub_service'] = Mock()
 
 from app.services.scheduled_visit_update_service import ScheduledVisitUpdateService
 from app.exceptions.custom_exceptions import SalesPlanValidationError, SalesPlanBusinessLogicError
@@ -28,9 +29,16 @@ class TestScheduledVisitUpdateService:
         return Mock()
     
     @pytest.fixture
-    def service(self, mock_repository, mock_cloud_storage):
-        """Servicio con repositorio y cloud storage mockeados"""
-        return ScheduledVisitUpdateService(mock_repository, mock_cloud_storage)
+    def mock_pubsub(self):
+        """Mock del servicio de Pub/Sub"""
+        mock = Mock()
+        mock.publish_video_processing_event.return_value = "mock-message-id-12345"
+        return mock
+    
+    @pytest.fixture
+    def service(self, mock_repository, mock_cloud_storage, mock_pubsub):
+        """Servicio con repositorio, cloud storage y pubsub mockeados"""
+        return ScheduledVisitUpdateService(mock_repository, mock_cloud_storage, mock_pubsub)
     
     def test_update_client_visit_success(self, service, mock_repository):
         """Test actualizar cliente de visita exitosamente"""
@@ -131,14 +139,15 @@ class TestScheduledVisitUpdateService:
                 find='Hallazgos'
             )
     
-    def test_init_service(self, mock_repository, mock_cloud_storage):
+    def test_init_service(self, mock_repository, mock_cloud_storage, mock_pubsub):
         """Test inicialización del servicio"""
-        service = ScheduledVisitUpdateService(mock_repository, mock_cloud_storage)
+        service = ScheduledVisitUpdateService(mock_repository, mock_cloud_storage, mock_pubsub)
         
         assert service.scheduled_visit_repository == mock_repository
         assert service.cloud_storage_service == mock_cloud_storage
+        assert service.pubsub_service == mock_pubsub
     
-    def test_update_client_visit_with_file_success(self, service, mock_repository, mock_cloud_storage):
+    def test_update_client_visit_with_file_success(self, service, mock_repository, mock_cloud_storage, mock_pubsub):
         """Test actualizar cliente de visita con archivo exitosamente"""
         # Mock de la visita
         mock_visit = Mock()
@@ -147,19 +156,20 @@ class TestScheduledVisitUpdateService:
         
         # Mock del cliente en la visita
         mock_client_visit = Mock()
+        mock_client_visit.id = 123
         mock_client_visit.visit_id = 'visit1'
         mock_client_visit.client_id = 'client1'
         mock_client_visit.status = 'SCHEDULED'
         
         # Mock del archivo
         mock_file = Mock()
-        mock_file.filename = 'test.pdf'
+        mock_file.filename = 'test.mp4'
         mock_file.seek = Mock()
         
         mock_repository.get_by_id_and_seller.return_value = mock_visit
         mock_repository.get_client_visit.return_value = mock_client_visit
         mock_repository.update_client_visit.return_value = True
-        mock_cloud_storage.upload_file.return_value = (True, "Archivo subido", "https://storage.googleapis.com/bucket/file.pdf")
+        mock_cloud_storage.upload_file.return_value = (True, "Archivo subido", "https://storage.googleapis.com/bucket/file.mp4")
         
         result = service.update_client_visit(
             seller_id='seller1',
@@ -176,17 +186,21 @@ class TestScheduledVisitUpdateService:
         assert result['filename'] is not None
         # Verificar que el filename tiene el formato correcto: nombre_base-uuid.extension
         assert result['filename'].startswith('test-')
-        assert result['filename'].endswith('.pdf')
-        assert result['filename_url'] == "https://storage.googleapis.com/bucket/file.pdf"
+        assert result['filename'].endswith('.mp4')
+        assert result['filename_url'] == "https://storage.googleapis.com/bucket/file.mp4"
+        assert result['file_status'] == 'Cargado'
         
         # Verificar que se llamó a upload_file con el nombre correcto
         mock_cloud_storage.upload_file.assert_called_once()
         call_args = mock_cloud_storage.upload_file.call_args
         uploaded_filename = call_args[0][1]
-        # El filename debe tener formato: test-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.pdf (UUID completo de 32 caracteres)
+        # El filename debe tener formato: test-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.mp4 (UUID completo de 32 caracteres)
         assert uploaded_filename.startswith('test-')
-        assert uploaded_filename.endswith('.pdf')
+        assert uploaded_filename.endswith('.mp4')
         assert len(uploaded_filename.split('-')[1].split('.')[0]) == 32  # UUID completo de 32 caracteres hexadecimales
+        
+        # Verificar que se publicó el evento en Pub/Sub
+        mock_pubsub.publish_video_processing_event.assert_called_once_with(123)
     
     def test_update_client_visit_file_upload_fails(self, service, mock_repository, mock_cloud_storage):
         """Test cuando falla la subida del archivo"""
@@ -201,7 +215,7 @@ class TestScheduledVisitUpdateService:
         
         # Mock del archivo
         mock_file = Mock()
-        mock_file.filename = 'test.pdf'
+        mock_file.filename = 'test.mp4'
         
         mock_repository.get_by_id_and_seller.return_value = mock_visit
         mock_repository.get_client_visit.return_value = mock_client_visit
@@ -215,4 +229,45 @@ class TestScheduledVisitUpdateService:
                 find='Hallazgos',
                 file=mock_file
             )
+    
+    def test_update_client_visit_with_file_no_pubsub(self, mock_repository, mock_cloud_storage):
+        """Test actualizar cliente de visita con archivo pero sin servicio PubSub"""
+        # Servicio sin PubSub
+        service = ScheduledVisitUpdateService(mock_repository, mock_cloud_storage, None)
+        
+        # Mock de la visita
+        mock_visit = Mock()
+        mock_visit.id = 'visit1'
+        mock_visit.seller_id = 'seller1'
+        
+        # Mock del cliente en la visita
+        mock_client_visit = Mock()
+        mock_client_visit.id = 123
+        mock_client_visit.visit_id = 'visit1'
+        mock_client_visit.client_id = 'client1'
+        mock_client_visit.status = 'SCHEDULED'
+        
+        # Mock del archivo
+        mock_file = Mock()
+        mock_file.filename = 'test.mp4'
+        mock_file.seek = Mock()
+        
+        mock_repository.get_by_id_and_seller.return_value = mock_visit
+        mock_repository.get_client_visit.return_value = mock_client_visit
+        mock_repository.update_client_visit.return_value = True
+        mock_cloud_storage.upload_file.return_value = (True, "Archivo subido", "https://storage.googleapis.com/bucket/file.mp4")
+        
+        result = service.update_client_visit(
+            seller_id='seller1',
+            visit_id='visit1',
+            client_id='client1',
+            find='Hallazgos importantes',
+            file=mock_file
+        )
+        
+        # Verificar que la operación fue exitosa aunque no haya PubSub
+        assert result['visit_id'] == 'visit1'
+        assert result['client_id'] == 'client1'
+        assert result['status'] == 'COMPLETED'
+        assert result['file_status'] == 'Cargado'
 

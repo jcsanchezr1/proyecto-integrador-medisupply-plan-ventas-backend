@@ -25,8 +25,11 @@ class Config:
     # Configuración para URLs firmadas con IAM signBlob
     SIGNING_SERVICE_ACCOUNT_EMAIL = os.getenv('SIGNING_SERVICE_ACCOUNT_EMAIL', '')
     
-    # Configuración de tamaño máximo de archivos (10 MB por defecto)
-    MAX_CONTENT_LENGTH = int(os.getenv('MAX_CONTENT_LENGTH', str(10 * 1024 * 1024)))
+    # Configuración de tamaño máximo de archivos (500 MB para videos)
+    MAX_CONTENT_LENGTH = int(os.getenv('MAX_CONTENT_LENGTH', str(500 * 1024 * 1024)))
+    
+    # Configuración de Google Cloud Pub/Sub
+    PUBSUB_TOPIC_VIDEO_PROCESSING = os.getenv('PUBSUB_TOPIC_VIDEO_PROCESSING', 'salesplan.processing.videos')
 
 
 class DevelopmentConfig(Config):

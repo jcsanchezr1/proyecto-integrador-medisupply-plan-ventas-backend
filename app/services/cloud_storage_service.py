@@ -186,7 +186,8 @@ class CloudStorageService:
                     'jpg': 'image/jpeg',
                     'jpeg': 'image/jpeg',
                     'png': 'image/png',
-                    'gif': 'image/gif'
+                    'gif': 'image/gif',
+                    'mp4': 'video/mp4'
                 }
                 content_type = content_types.get(extension, 'application/octet-stream')
             

@@ -7,6 +7,7 @@ from flask import request
 from typing import Dict, Any, Tuple
 from ..services.scheduled_visit_update_service import ScheduledVisitUpdateService
 from ..services.cloud_storage_service import CloudStorageService
+from ..services.pubsub_service import PubSubService
 from ..repositories.scheduled_visit_repository import ScheduledVisitRepository
 from ..exceptions.custom_exceptions import SalesPlanValidationError, SalesPlanBusinessLogicError
 from .base_controller import BaseController
@@ -26,9 +27,11 @@ class ScheduledVisitUpdateController(BaseController):
         self.config = Config()
         self.scheduled_visit_repository = ScheduledVisitRepository(session)
         self.cloud_storage_service = CloudStorageService(config=self.config)
+        self.pubsub_service = PubSubService(config=self.config)
         self.scheduled_visit_update_service = ScheduledVisitUpdateService(
             self.scheduled_visit_repository,
-            self.cloud_storage_service
+            self.cloud_storage_service,
+            self.pubsub_service
         )
     
     def _process_multipart_request(self):
@@ -69,8 +72,26 @@ class ScheduledVisitUpdateController(BaseController):
                     400
                 )
             
-            # Validar tamaño del archivo si se envió
+            # Validar tipo y tamaño del archivo si se envió
             if file:
+                # Validar que el archivo sea MP4
+                if not file.filename:
+                    return self.error_response(
+                        "Error de validación",
+                        "El nombre del archivo no es válido",
+                        400
+                    )
+                
+                file_extension = file.filename.rsplit('.', 1)[-1].lower() if '.' in file.filename else ''
+                
+                if file_extension != 'mp4':
+                    return self.error_response(
+                        "Error de validación",
+                        "Solo se permiten archivos de video MP4. Extensión recibida: " + (file_extension if file_extension else 'sin extensión'),
+                        400
+                    )
+                
+                # Validar tamaño del archivo
                 file.seek(0, 2)  # Ir al final del archivo
                 file_size = file.tell()  # Obtener el tamaño
                 file.seek(0)  # Volver al inicio
@@ -83,7 +104,7 @@ class ScheduledVisitUpdateController(BaseController):
                         400
                     )
                 
-                logger.info(f"Archivo recibido: {file.filename}, tamaño: {file_size / 1024:.2f} KB")
+                logger.info(f"Archivo recibido: {file.filename}, tamaño: {file_size / (1024 * 1024):.2f} MB")
             
             # Actualizar el cliente de la visita (el servicio maneja la subida del archivo)
             result = self.scheduled_visit_update_service.update_client_visit(
