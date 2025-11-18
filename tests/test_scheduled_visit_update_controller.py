@@ -15,12 +15,23 @@ class MockCloudStorageService:
         pass
     
     def upload_file(self, file, filename):
-        return True, "Archivo subido exitosamente", "https://storage.googleapis.com/bucket/file.pdf"
+        return True, "Archivo subido exitosamente", "https://storage.googleapis.com/bucket/file.mp4"
+
+
+# Mock de PubSubService para evitar conflictos de importación con google.cloud
+class MockPubSubService:
+    def __init__(self, config=None):
+        pass
+    
+    def publish_video_processing_event(self, scheduled_visit_client_id):
+        return "mock-message-id-12345"
 
 
 # Aplicar el mock antes de importar el controlador
 sys.modules['app.services.cloud_storage_service'] = Mock()
 sys.modules['app.services.cloud_storage_service'].CloudStorageService = MockCloudStorageService
+sys.modules['app.services.pubsub_service'] = Mock()
+sys.modules['app.services.pubsub_service'].PubSubService = MockPubSubService
 
 
 class TestScheduledVisitUpdateController:
@@ -59,14 +70,15 @@ class TestScheduledVisitUpdateController:
     
     @patch('app.services.scheduled_visit_update_service.ScheduledVisitUpdateService.update_client_visit')
     def test_post_success_with_file(self, mock_update, app):
-        """Test actualizar cliente con archivo"""
+        """Test actualizar cliente con archivo MP4"""
         mock_update.return_value = {
             'visit_id': 'visit1',
             'client_id': 'client1',
             'status': 'COMPLETED',
             'find': 'Hallazgos importantes',
-            'filename': 'visit1_client1_abc123.pdf',
-            'filename_url': 'https://storage.googleapis.com/bucket/file.pdf'
+            'filename': 'visit1_client1_abc123.mp4',
+            'filename_url': 'https://storage.googleapis.com/bucket/file.mp4',
+            'file_status': 'Cargado'
         }
         
         # Crear un archivo mock de 1 MB
@@ -75,7 +87,7 @@ class TestScheduledVisitUpdateController:
         with app.test_request_context(
             data={
                 'find': 'Hallazgos importantes',
-                'file': (BytesIO(file_content), 'test.pdf')
+                'file': (BytesIO(file_content), 'test.mp4')
             },
             content_type='multipart/form-data'
         ):
@@ -104,13 +116,13 @@ class TestScheduledVisitUpdateController:
     
     def test_post_file_too_large(self, app):
         """Test archivo que excede el tamaño máximo"""
-        # Crear un archivo mock de 11 MB (excede el límite de 10 MB)
-        file_content = b'x' * (11 * 1024 * 1024)
+        # Crear un archivo mock de 501 MB (excede el límite de 500 MB)
+        file_content = b'x' * (501 * 1024 * 1024)
         
         with app.test_request_context(
             data={
                 'find': 'Hallazgos importantes',
-                'file': (BytesIO(file_content), 'large_file.pdf')
+                'file': (BytesIO(file_content), 'large_file.mp4')
             },
             content_type='multipart/form-data'
         ):
@@ -121,7 +133,73 @@ class TestScheduledVisitUpdateController:
             
             assert status == 400
             assert response['success'] is False
-            assert '10 MB' in response['details']
+            assert '500 MB' in response['details']
+    
+    def test_post_file_invalid_extension_pdf(self, app):
+        """Test archivo con extensión PDF (no permitida)"""
+        # Crear un archivo mock de 1 MB
+        file_content = b'x' * (1024 * 1024)
+        
+        with app.test_request_context(
+            data={
+                'find': 'Hallazgos importantes',
+                'file': (BytesIO(file_content), 'test.pdf')
+            },
+            content_type='multipart/form-data'
+        ):
+            from app.controllers.scheduled_visit_update_controller import ScheduledVisitUpdateController
+            controller = ScheduledVisitUpdateController()
+            
+            response, status = controller.post('seller1', 'visit1', 'client1')
+            
+            assert status == 400
+            assert response['success'] is False
+            assert 'MP4' in response['details']
+            assert 'pdf' in response['details']
+    
+    def test_post_file_invalid_extension_avi(self, app):
+        """Test archivo con extensión AVI (no permitida)"""
+        # Crear un archivo mock de 1 MB
+        file_content = b'x' * (1024 * 1024)
+        
+        with app.test_request_context(
+            data={
+                'find': 'Hallazgos importantes',
+                'file': (BytesIO(file_content), 'test.avi')
+            },
+            content_type='multipart/form-data'
+        ):
+            from app.controllers.scheduled_visit_update_controller import ScheduledVisitUpdateController
+            controller = ScheduledVisitUpdateController()
+            
+            response, status = controller.post('seller1', 'visit1', 'client1')
+            
+            assert status == 400
+            assert response['success'] is False
+            assert 'MP4' in response['details']
+            assert 'avi' in response['details']
+    
+    def test_post_file_no_extension(self, app):
+        """Test archivo sin extensión"""
+        # Crear un archivo mock de 1 MB
+        file_content = b'x' * (1024 * 1024)
+        
+        with app.test_request_context(
+            data={
+                'find': 'Hallazgos importantes',
+                'file': (BytesIO(file_content), 'testvideo')
+            },
+            content_type='multipart/form-data'
+        ):
+            from app.controllers.scheduled_visit_update_controller import ScheduledVisitUpdateController
+            controller = ScheduledVisitUpdateController()
+            
+            response, status = controller.post('seller1', 'visit1', 'client1')
+            
+            assert status == 400
+            assert response['success'] is False
+            assert 'MP4' in response['details']
+            assert 'sin extensión' in response['details']
     
     @patch('app.services.scheduled_visit_update_service.ScheduledVisitUpdateService.update_client_visit')
     def test_post_file_upload_fails(self, mock_update, app):
@@ -137,7 +215,7 @@ class TestScheduledVisitUpdateController:
         with app.test_request_context(
             data={
                 'find': 'Hallazgos importantes',
-                'file': (BytesIO(file_content), 'test.pdf')
+                'file': (BytesIO(file_content), 'test.mp4')
             },
             content_type='multipart/form-data'
         ):
