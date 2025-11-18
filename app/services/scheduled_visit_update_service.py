@@ -7,6 +7,7 @@ from typing import Optional
 from werkzeug.datastructures import FileStorage
 from ..repositories.scheduled_visit_repository import ScheduledVisitRepository
 from ..services.cloud_storage_service import CloudStorageService
+from ..services.pubsub_service import PubSubService
 from ..exceptions.custom_exceptions import SalesPlanValidationError, SalesPlanBusinessLogicError
 
 logger = logging.getLogger(__name__)
@@ -18,11 +19,13 @@ class ScheduledVisitUpdateService:
     def __init__(
         self, 
         scheduled_visit_repository: ScheduledVisitRepository,
-        cloud_storage_service: CloudStorageService
+        cloud_storage_service: CloudStorageService,
+        pubsub_service: Optional[PubSubService] = None
     ):
         logger.info("=== INICIALIZANDO ScheduledVisitUpdateService ===")
         self.scheduled_visit_repository = scheduled_visit_repository
         self.cloud_storage_service = cloud_storage_service
+        self.pubsub_service = pubsub_service
     
     def update_client_visit(
         self, 
@@ -82,7 +85,18 @@ class ScheduledVisitUpdateService:
                 
                 update_data['filename'] = unique_filename
                 update_data['filename_url'] = url
+                update_data['file_status'] = 'Cargado'
                 logger.info(f"Archivo subido exitosamente: {unique_filename}")
+                
+                # Publicar evento en Pub/Sub si el servicio está disponible
+                if self.pubsub_service:
+                    try:
+                        logger.info(f"Publicando evento de procesamiento de video para cliente {client_id}")
+                        message_id = self.pubsub_service.publish_video_processing_event(client_visit.id)
+                        logger.info(f"Evento publicado exitosamente con ID: {message_id}")
+                    except Exception as e:
+                        logger.error(f"Error al publicar evento en Pub/Sub: {str(e)}")
+                        # No lanzamos excepción para no bloquear la operación principal
             
             # Actualizar el registro
             updated = self.scheduled_visit_repository.update_client_visit(
@@ -102,7 +116,8 @@ class ScheduledVisitUpdateService:
                 "status": "COMPLETED",
                 "find": find,
                 "filename": update_data['filename'],
-                "filename_url": update_data['filename_url']
+                "filename_url": update_data['filename_url'],
+                "file_status": update_data.get('file_status')
             }
             
         except SalesPlanValidationError:
