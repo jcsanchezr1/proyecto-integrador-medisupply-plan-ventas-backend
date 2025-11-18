@@ -83,14 +83,13 @@ jobs:
             --region ${{ env.GCP_REGION }} \
             --platform managed \
             --service-account ${{ env.SIGNING_SERVICE_ACCOUNT_EMAIL }} \
-            --set-env-vars HOST="0.0.0.0",DEBUG="false",DATABASE_URL="${{ env.DATABASE_URL }}",AUTH_SERVICE_URL="${{ env.AUTH_SERVICE_URL }}",BUCKET_NAME="${{ env.BUCKET_NAME }}",BUCKET_FOLDER="${{ env.BUCKET_FOLDER }}",BUCKET_LOCATION="${{ env.BUCKET_LOCATION }},GCP_PROJECT_ID="${{ env.GCP_PROJECT_ID }},SIGNING_SERVICE_ACCOUNT_EMAIL="${{ env.SIGNING_SERVICE_ACCOUNT_EMAIL }} PUBSUB_TOPIC_VIDEO_PROCESSING="${{ env.PUBSUB_TOPIC_VIDEO_PROCESSING }}" \
+            --set-env-vars HOST="0.0.0.0",DEBUG="false",DATABASE_URL="${{ env.DATABASE_URL }}",AUTH_SERVICE_URL="${{ env.AUTH_SERVICE_URL }}",BUCKET_NAME="${{ env.BUCKET_NAME }}",BUCKET_FOLDER="${{ env.BUCKET_FOLDER }}",BUCKET_LOCATION="${{ env.BUCKET_LOCATION }},GCP_PROJECT_ID="${{ env.GCP_PROJECT_ID }},SIGNING_SERVICE_ACCOUNT_EMAIL="${{ env.SIGNING_SERVICE_ACCOUNT_EMAIL }},PUBSUB_TOPIC_VIDEO_PROCESSING="${{ env.PUBSUB_TOPIC_VIDEO_PROCESSING }}" \
             --memory 2Gi \
             --cpu 2 \
             --min-instances 1 \
             --max-instances 1 \
             --port 8080 \
             --allow-unauthenticated
-            
       - name: Get service URL
         run: |
           SERVICE_URL=$(gcloud run services describe ${{ env.SERVICE_NAME }} --region=${{ env.GCP_REGION }} --format="value(status.url)")
