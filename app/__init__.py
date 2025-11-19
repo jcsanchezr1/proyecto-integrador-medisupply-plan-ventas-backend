@@ -36,6 +36,7 @@ def configure_routes(app):  # pragma: no cover
     from .controllers.scheduled_visit_controller import ScheduledVisitController
     from .controllers.scheduled_visit_detail_controller import ScheduledVisitDetailController
     from .controllers.scheduled_visit_update_controller import ScheduledVisitUpdateController
+    from .controllers.videos_processed_controller import VideosProcessedController
     
     api = Api(app)
     
@@ -50,5 +51,6 @@ def configure_routes(app):  # pragma: no cover
     api.add_resource(ScheduledVisitController, '/sellers/<string:seller_id>/scheduled-visits')
     api.add_resource(ScheduledVisitDetailController, '/sellers/<string:seller_id>/route/<string:visit_id>')
     api.add_resource(ScheduledVisitUpdateController, '/sellers/<string:seller_id>/route/<string:visit_id>/client/<string:client_id>')
+    api.add_resource(VideosProcessedController, '/videos-processed')
     
-    print("Rutas configuradas: /sales-plan/ping, /sales-plan/create, /sales-plan, /sales-plan/delete-all, /sellers/<seller_id>/scheduled-visits, /sellers/<seller_id>/route/<visit_id>, /sellers/<seller_id>/route/<visit_id>/client/<client_id>")
+    print("Rutas configuradas: /sales-plan/ping, /sales-plan/create, /sales-plan, /sales-plan/delete-all, /sellers/<seller_id>/scheduled-visits, /sellers/<seller_id>/route/<visit_id>, /sellers/<seller_id>/route/<visit_id>/client/<client_id>, /videos-processed")

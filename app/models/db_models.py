@@ -47,6 +47,8 @@ class ScheduledVisitClientDB(Base):
     filename = Column(String(255), nullable=True)
     filename_url = Column(Text, nullable=True)
     file_status = Column(String(50), nullable=True)
+    filename_processed = Column(String(255), nullable=True)
+    filename_url_processed = Column(Text, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
