@@ -1,11 +1,11 @@
 {
 	"info": {
-		"_postman_id": "0c415fd3-be7c-42f4-8fff-290a58542f1e",
+		"_postman_id": "e2cb3fd4-b925-44db-bb11-3b93de3922d8",
 		"name": "MediSupply Sales Plan API - Con Validaciones Completas",
 		"description": "Colección completa para validar el servicio de planes de ventas MediSupply con todas las validaciones",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "2750860",
-		"_collection_link": "https://timecontrol.postman.co/workspace/TCT~e4bf613c-84ca-4624-ad9c-4c8c0259e211/collection/2750860-0c415fd3-be7c-42f4-8fff-290a58542f1e?action=share&source=collection_link&creator=2750860"
+		"_collection_link": "https://timecontrol.postman.co/workspace/TCT~e4bf613c-84ca-4624-ad9c-4c8c0259e211/collection/2750860-e2cb3fd4-b925-44db-bb11-3b93de3922d8?action=share&source=collection_link&creator=2750860"
 	},
 	"item": [
 		{
@@ -1764,6 +1764,151 @@
 						"{{visit_id}}",
 						"client",
 						"99999999-9999-9999-9999-999999999999"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Consultar Videos Procesados - Todos",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status code is 200', function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"pm.test('Response has success structure', function () {",
+							"    const response = pm.response.json();",
+							"    pm.expect(response).to.have.property('success');",
+							"    pm.expect(response).to.have.property('message');",
+							"    pm.expect(response).to.have.property('data');",
+							"});",
+							"pm.test('Items have seller_id field', function () {",
+							"    const response = pm.response.json();",
+							"    if (response.data && response.data.items && response.data.items.length > 0) {",
+							"        pm.expect(response.data.items[0]).to.have.property('seller_id');",
+							"    }",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{auth_token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{url_local_autorizador}}/videos-processed",
+					"host": [
+						"{{url_local_autorizador}}"
+					],
+					"path": [
+						"videos-processed"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Consultar Videos Procesados - Con Todos los Filtros",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"pm.environment.set('filter_page', '1');",
+							"pm.environment.set('filter_per_page', '10');"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status code is 200', function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"pm.test('Response has success structure', function () {",
+							"    const response = pm.response.json();",
+							"    pm.expect(response).to.have.property('success');",
+							"    pm.expect(response).to.have.property('message');",
+							"    pm.expect(response).to.have.property('data');",
+							"});",
+							"pm.test('Response has pagination', function () {",
+							"    const response = pm.response.json();",
+							"    pm.expect(response.data).to.have.property('pagination');",
+							"    pm.expect(response.data.pagination).to.have.property('page');",
+							"    pm.expect(response.data.pagination).to.have.property('per_page');",
+							"    pm.expect(response.data.pagination).to.have.property('total');",
+							"});",
+							"pm.test('Items have seller_id field', function () {",
+							"    const response = pm.response.json();",
+							"    if (response.data && response.data.items && response.data.items.length > 0) {",
+							"        response.data.items.forEach(item => {",
+							"            pm.expect(item).to.have.property('seller_id');",
+							"            const sellerId = item.seller_id;",
+							"            const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;",
+							"            pm.expect(sellerId).to.match(uuidRegex);",
+							"        });",
+							"    }",
+							"});",
+							"pm.test('Items match seller_id filter', function () {",
+							"    const response = pm.response.json();",
+							"    const filterSellerId = pm.environment.get('filter_seller_id');",
+							"    if (response.data && response.data.items && response.data.items.length > 0 && filterSellerId) {",
+							"        response.data.items.forEach(item => {",
+							"            pm.expect(item.seller_id).to.eql(filterSellerId);",
+							"        });",
+							"    }",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{auth_token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{url_local_autorizador}}/videos-processed?page={{filter_page}}&per_page={{filter_per_page}}",
+					"host": [
+						"{{url_local_autorizador}}"
+					],
+					"path": [
+						"videos-processed"
+					],
+					"query": [
+						{
+							"key": "page",
+							"value": "{{filter_page}}",
+							"description": "Número de página"
+						},
+						{
+							"key": "per_page",
+							"value": "{{filter_per_page}}",
+							"description": "Resultados por página"
+						}
 					]
 				}
 			},
