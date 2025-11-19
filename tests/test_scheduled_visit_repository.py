@@ -483,6 +483,135 @@ class TestScheduledVisitRepository:
         with pytest.raises(Exception, match="Error al obtener clientes de la visita"):
             repository.get_clients_for_visit('visit1')
     
+    @patch('app.repositories.scheduled_visit_repository.ScheduledVisitClientDB')
+    def test_get_processed_videos_success(self, mock_client_db, repository, mock_session):
+        """Test obtener videos procesados exitosamente"""
+        # Crear mocks de clientes
+        mock_client1 = Mock()
+        mock_client1.id = 1
+        mock_client1.visit_id = 'visit-1'
+        mock_client1.client_id = 'client-1'
+        mock_client1.file_status = 'PROCESSED'
+        mock_client1.find = 'Encontrado'
+        mock_client1.filename_url = 'https://example.com/video1.mp4'
+        mock_client1.filename_url_processed = 'https://example.com/video1_processed.mp4'
+        
+        mock_client2 = Mock()
+        mock_client2.id = 2
+        mock_client2.visit_id = 'visit-2'
+        mock_client2.client_id = 'client-2'
+        mock_client2.file_status = 'PENDING'
+        mock_client2.find = None
+        mock_client2.filename_url = 'https://example.com/video2.mp4'
+        mock_client2.filename_url_processed = None
+        
+        # Configurar chain de query
+        chain = Mock()
+        chain.count.return_value = 2
+        chain.offset.return_value = chain
+        chain.limit.return_value = chain
+        chain.all.return_value = [mock_client1, mock_client2]
+        
+        query_base = mock_session.query.return_value
+        query_base.count.return_value = 2
+        query_base.offset.return_value = chain
+        query_base.limit.return_value = chain
+        query_base.all.return_value = [mock_client1, mock_client2]
+        
+        # Ejecutar
+        clients, total = repository.get_processed_videos(page=1, per_page=10)
+        
+        # Verificar
+        assert len(clients) == 2
+        assert total == 2
+        assert clients[0].id == 1
+        assert clients[1].id == 2
+    
+    @patch('app.repositories.scheduled_visit_repository.ScheduledVisitClientDB')
+    def test_get_processed_videos_with_pagination(self, mock_client_db, repository, mock_session):
+        """Test obtener videos procesados con paginación"""
+        mock_client = Mock()
+        mock_client.id = 3
+        mock_client.visit_id = 'visit-3'
+        mock_client.client_id = 'client-3'
+        mock_client.file_status = 'PROCESSED'
+        mock_client.find = None
+        mock_client.filename_url = None
+        mock_client.filename_url_processed = None
+        
+        # Configurar chain de query - offset retorna un objeto que tiene limit
+        limit_chain = Mock()
+        limit_chain.all.return_value = [mock_client]
+        
+        offset_chain = Mock()
+        offset_chain.limit.return_value = limit_chain
+        
+        query_base = mock_session.query.return_value
+        query_base.count.return_value = 10
+        query_base.offset.return_value = offset_chain
+        
+        # Ejecutar con paginación
+        clients, total = repository.get_processed_videos(page=2, per_page=5)
+        
+        # Verificar
+        assert len(clients) == 1
+        assert total == 10
+        # Verificar que se llamó offset con el valor correcto (page-1)*per_page = (2-1)*5 = 5
+        query_base.offset.assert_called_once_with(5)
+        offset_chain.limit.assert_called_once_with(5)
+    
+    @patch('app.repositories.scheduled_visit_repository.ScheduledVisitClientDB')
+    def test_get_processed_videos_empty(self, mock_client_db, repository, mock_session):
+        """Test obtener videos procesados cuando no hay registros"""
+        # Configurar chain de query
+        chain = Mock()
+        chain.count.return_value = 0
+        chain.offset.return_value = chain
+        chain.limit.return_value = chain
+        chain.all.return_value = []
+        
+        query_base = mock_session.query.return_value
+        query_base.count.return_value = 0
+        query_base.offset.return_value = chain
+        query_base.limit.return_value = chain
+        query_base.all.return_value = []
+        
+        # Ejecutar
+        clients, total = repository.get_processed_videos()
+        
+        # Verificar
+        assert len(clients) == 0
+        assert total == 0
+    
+    def test_get_processed_videos_sqlalchemy_error(self, repository, mock_session):
+        """Test error de SQLAlchemy en get_processed_videos"""
+        mock_session.query.side_effect = SQLAlchemyError("Database error")
+        
+        with pytest.raises(Exception, match="Error al obtener videos procesados"):
+            repository.get_processed_videos()
+    
+    @patch('app.repositories.scheduled_visit_repository.ScheduledVisitClientDB')
+    def test_get_processed_videos_default_pagination(self, mock_client_db, repository, mock_session):
+        """Test obtener videos procesados con valores por defecto de paginación"""
+        mock_client = Mock()
+        mock_client.id = 1
+        
+        query_base = mock_session.query.return_value
+        query_base.count.return_value = 1
+        query_base.offset.return_value = query_base
+        query_base.limit.return_value = query_base
+        query_base.all.return_value = [mock_client]
+        
+        # Ejecutar sin parámetros (debe usar defaults: page=1, per_page=10)
+        clients, total = repository.get_processed_videos()
+        
+        # Verificar
+        assert len(clients) == 1
+        assert total == 1
+        # Verificar que se llamó offset con 0 (page-1)*per_page = (1-1)*10 = 0
+        query_base.offset.assert_called_once_with(0)
+        query_base.limit.assert_called_once_with(10)
+    
     @patch('app.repositories.scheduled_visit_repository.ScheduledVisitDB')
     @patch('app.repositories.scheduled_visit_repository.ScheduledVisitClientDB')
     def test_get_by_seller_with_date_filter_real(self, mock_client_db, mock_visit_db, repository, mock_session):

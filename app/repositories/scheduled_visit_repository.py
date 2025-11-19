@@ -199,6 +199,24 @@ class ScheduledVisitRepository(BaseRepository):
         """No requerido - implementación mínima"""
         pass
     
+    def get_processed_videos(
+        self,
+        page: int = 1,
+        per_page: int = 10
+    ) -> Tuple[List[Any], int]:
+        """Obtiene registros de videos procesados de scheduled_visit_clients con paginación"""
+        try:
+            query = self.session.query(ScheduledVisitClientDB)
+            
+            total = query.count()
+            
+            offset = (page - 1) * per_page
+            db_clients = query.offset(offset).limit(per_page).all()
+            
+            return db_clients, total
+        except SQLAlchemyError as e:
+            raise Exception(f"Error al obtener videos procesados: {str(e)}")
+    
     def _db_to_model(self, db_visit: ScheduledVisitDB, clients: List[ScheduledVisitClient]) -> ScheduledVisit:
         """Convierte modelo de BD a modelo de dominio"""
         return ScheduledVisit(
