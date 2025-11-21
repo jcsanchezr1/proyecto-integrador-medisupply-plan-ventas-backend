@@ -612,6 +612,140 @@ class TestScheduledVisitRepository:
         query_base.offset.assert_called_once_with(0)
         query_base.limit.assert_called_once_with(10)
     
+    @patch('app.repositories.scheduled_visit_repository.ScheduledVisitClientDB')
+    def test_get_processed_videos_with_visit_id_filter(self, mock_client_db, repository, mock_session):
+        """Test obtener videos procesados con filtro por visit_id"""
+        mock_client = Mock()
+        mock_client.id = 1
+        mock_client.visit_id = 'visit-1'
+        
+        # Configurar chain de query con filtro
+        filter_chain = Mock()
+        filter_chain.count.return_value = 1
+        filter_chain.offset.return_value = filter_chain
+        filter_chain.limit.return_value = filter_chain
+        filter_chain.all.return_value = [mock_client]
+        
+        query_base = mock_session.query.return_value
+        query_base.filter.return_value = filter_chain
+        
+        # Ejecutar con filtro por visit_id
+        clients, total = repository.get_processed_videos(visit_id='visit-1')
+        
+        # Verificar
+        assert len(clients) == 1
+        assert total == 1
+        # Verificar que se aplicó el filtro
+        assert query_base.filter.called
+    
+    @patch('app.repositories.scheduled_visit_repository.ScheduledVisitClientDB')
+    def test_get_processed_videos_with_client_ids_filter(self, mock_client_db, repository, mock_session):
+        """Test obtener videos procesados con filtro por client_ids"""
+        mock_client = Mock()
+        mock_client.id = 1
+        mock_client.client_id = 'client-1'
+        
+        # Configurar chain de query con filtro
+        filter_chain = Mock()
+        filter_chain.count.return_value = 1
+        filter_chain.offset.return_value = filter_chain
+        filter_chain.limit.return_value = filter_chain
+        filter_chain.all.return_value = [mock_client]
+        
+        query_base = mock_session.query.return_value
+        query_base.filter.return_value = filter_chain
+        
+        # Ejecutar con filtro por client_ids
+        clients, total = repository.get_processed_videos(client_ids=['client-1', 'client-2'])
+        
+        # Verificar
+        assert len(clients) == 1
+        assert total == 1
+        # Verificar que se aplicó el filtro
+        assert query_base.filter.called
+    
+    @patch('app.repositories.scheduled_visit_repository.ScheduledVisitClientDB')
+    def test_get_processed_videos_with_file_status_filter(self, mock_client_db, repository, mock_session):
+        """Test obtener videos procesados con filtro por file_status"""
+        mock_client = Mock()
+        mock_client.id = 1
+        mock_client.file_status = 'PROCESSED'
+        
+        # Configurar chain de query con filtro
+        filter_chain = Mock()
+        filter_chain.count.return_value = 1
+        filter_chain.offset.return_value = filter_chain
+        filter_chain.limit.return_value = filter_chain
+        filter_chain.all.return_value = [mock_client]
+        
+        query_base = mock_session.query.return_value
+        query_base.filter.return_value = filter_chain
+        
+        # Ejecutar con filtro por file_status
+        clients, total = repository.get_processed_videos(file_status='PROCESSED')
+        
+        # Verificar
+        assert len(clients) == 1
+        assert total == 1
+        # Verificar que se aplicó el filtro
+        assert query_base.filter.called
+    
+    @patch('app.repositories.scheduled_visit_repository.ScheduledVisitClientDB')
+    def test_get_processed_videos_with_find_filter(self, mock_client_db, repository, mock_session):
+        """Test obtener videos procesados con filtro por find"""
+        mock_client = Mock()
+        mock_client.id = 1
+        mock_client.find = 'Encontrado'
+        
+        # Configurar chain de query con filtro
+        filter_chain = Mock()
+        filter_chain.count.return_value = 1
+        filter_chain.offset.return_value = filter_chain
+        filter_chain.limit.return_value = filter_chain
+        filter_chain.all.return_value = [mock_client]
+        
+        query_base = mock_session.query.return_value
+        query_base.filter.return_value = filter_chain
+        
+        # Ejecutar con filtro por find
+        clients, total = repository.get_processed_videos(find='Encontrado')
+        
+        # Verificar
+        assert len(clients) == 1
+        assert total == 1
+        # Verificar que se aplicó el filtro
+        assert query_base.filter.called
+    
+    @patch('app.repositories.scheduled_visit_repository.ScheduledVisitClientDB')
+    def test_get_processed_videos_with_multiple_filters(self, mock_client_db, repository, mock_session):
+        """Test obtener videos procesados con múltiples filtros"""
+        mock_client = Mock()
+        mock_client.id = 1
+        
+        # Configurar chain de query con múltiples filtros encadenados
+        filter_chain = Mock()
+        filter_chain.filter.return_value = filter_chain
+        filter_chain.count.return_value = 1
+        filter_chain.offset.return_value = filter_chain
+        filter_chain.limit.return_value = filter_chain
+        filter_chain.all.return_value = [mock_client]
+        
+        query_base = mock_session.query.return_value
+        query_base.filter.return_value = filter_chain
+        
+        # Ejecutar con múltiples filtros
+        clients, total = repository.get_processed_videos(
+            visit_id='visit-1',
+            file_status='PROCESSED',
+            find='Encontrado'
+        )
+        
+        # Verificar
+        assert len(clients) == 1
+        assert total == 1
+        # Verificar que se aplicaron los filtros (debe llamarse filter múltiples veces)
+        assert query_base.filter.called
+    
     @patch('app.repositories.scheduled_visit_repository.ScheduledVisitDB')
     @patch('app.repositories.scheduled_visit_repository.ScheduledVisitClientDB')
     def test_get_by_seller_with_date_filter_real(self, mock_client_db, mock_visit_db, repository, mock_session):
