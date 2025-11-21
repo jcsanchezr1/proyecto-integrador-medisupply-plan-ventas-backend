@@ -4,7 +4,7 @@ Repositorio para manejo de visitas programadas
 from typing import List, Optional, Tuple, Any
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy import func
+from sqlalchemy import func, or_
 from datetime import date, datetime
 from ..models.scheduled_visit import ScheduledVisit, ScheduledVisitClient
 from ..models.db_models import ScheduledVisitDB, ScheduledVisitClientDB
@@ -202,11 +202,31 @@ class ScheduledVisitRepository(BaseRepository):
     def get_processed_videos(
         self,
         page: int = 1,
-        per_page: int = 10
+        per_page: int = 10,
+        visit_id: Optional[str] = None,
+        client_ids: Optional[List[str]] = None,
+        file_status: Optional[str] = None,
+        find: Optional[str] = None
     ) -> Tuple[List[Any], int]:
-        """Obtiene registros de videos procesados de scheduled_visit_clients con paginación"""
+        """Obtiene registros de videos procesados de scheduled_visit_clients con paginación y filtros"""
         try:
             query = self.session.query(ScheduledVisitClientDB)
+            
+            # Filtro por visit_id (búsqueda parcial con LIKE)
+            if visit_id:
+                query = query.filter(ScheduledVisitClientDB.visit_id.ilike(f"%{visit_id}%"))
+            
+            # Filtro por client_ids (lista de IDs)
+            if client_ids:
+                query = query.filter(or_(*[ScheduledVisitClientDB.client_id == cid for cid in client_ids]))
+            
+            # Filtro por file_status (búsqueda parcial con LIKE)
+            if file_status:
+                query = query.filter(ScheduledVisitClientDB.file_status.ilike(f"%{file_status}%"))
+            
+            # Filtro por find (búsqueda parcial con LIKE)
+            if find:
+                query = query.filter(ScheduledVisitClientDB.find.ilike(f"%{find}%"))
             
             total = query.count()
             

@@ -96,7 +96,9 @@ class TestVideosProcessedService:
         assert videos[1]['filename_url'] == 'https://example.com/video2.mp4'
         assert videos[1]['filename_url_processed'] is None
         
-        mock_repository.get_processed_videos.assert_called_once_with(page=1, per_page=10)
+        mock_repository.get_processed_videos.assert_called_once_with(
+            page=1, per_page=10, visit_id=None, client_ids=None, file_status=None, find=None
+        )
     
     @patch('app.services.videos_processed_service.requests.get')
     def test_get_processed_videos_client_not_available(self, mock_get, service, mock_repository, sample_db_clients):
@@ -162,7 +164,9 @@ class TestVideosProcessedService:
         # Verificar
         assert len(videos) == 0
         assert total == 0
-        mock_repository.get_processed_videos.assert_called_once_with(page=1, per_page=10)
+        mock_repository.get_processed_videos.assert_called_once_with(
+            page=1, per_page=10, visit_id=None, client_ids=None, file_status=None, find=None
+        )
         mock_get.assert_not_called()
     
     def test_get_processed_videos_repository_error(self, service, mock_repository):
@@ -269,5 +273,247 @@ class TestVideosProcessedService:
         # Verificar
         assert len(videos) == 2
         assert total == 10
-        mock_repository.get_processed_videos.assert_called_once_with(page=2, per_page=5)
+        mock_repository.get_processed_videos.assert_called_once_with(
+            page=2, per_page=5, visit_id=None, client_ids=None, file_status=None, find=None
+        )
+    
+    @patch('app.services.videos_processed_service.requests.get')
+    def test_get_processed_videos_with_visit_id_filter(self, mock_get, service, mock_repository, sample_db_clients):
+        """Test obtener videos procesados con filtro por visit_id"""
+        # Mock del repositorio - devuelve tupla (lista, total)
+        mock_repository.get_processed_videos.return_value = (sample_db_clients[:1], 1)
+        
+        # Mock de respuesta del servicio de auth
+        mock_response = Mock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = {
+            'data': {
+                'user': {
+                    'id': 'client-1',
+                    'name': 'Cliente Uno'
+                }
+            }
+        }
+        mock_get.return_value = mock_response
+        
+        # Ejecutar con filtro por visit_id
+        videos, total = service.get_processed_videos(visit_id='visit-1')
+        
+        # Verificar
+        assert len(videos) == 1
+        assert total == 1
+        mock_repository.get_processed_videos.assert_called_once_with(
+            page=1, per_page=10, visit_id='visit-1', client_ids=None, file_status=None, find=None
+        )
+    
+    @patch('app.services.videos_processed_service.requests.get')
+    def test_get_processed_videos_with_client_name_filter(self, mock_get, service, mock_repository, sample_db_clients):
+        """Test obtener videos procesados con filtro por nombre de cliente"""
+        # Mock de búsqueda de clientes por nombre
+        mock_response_search = Mock()
+        mock_response_search.status_code = 200
+        mock_response_search.json.return_value = {
+            'data': {
+                'users': [
+                    {'id': 'client-1'},
+                    {'id': 'client-2'}
+                ]
+            }
+        }
+        
+        # Mock de obtención de nombres de clientes
+        mock_response1 = Mock()
+        mock_response1.status_code = 200
+        mock_response1.json.return_value = {
+            'data': {
+                'user': {
+                    'id': 'client-1',
+                    'name': 'Cliente Uno'
+                }
+            }
+        }
+        
+        mock_response2 = Mock()
+        mock_response2.status_code = 200
+        mock_response2.json.return_value = {
+            'data': {
+                'user': {
+                    'id': 'client-2',
+                    'name': 'Cliente Dos'
+                }
+            }
+        }
+        
+        mock_get.side_effect = [mock_response_search, mock_response1, mock_response2]
+        
+        # Mock del repositorio
+        mock_repository.get_processed_videos.return_value = (sample_db_clients, 2)
+        
+        # Ejecutar con filtro por nombre de cliente
+        videos, total = service.get_processed_videos(client_name='Cliente')
+        
+        # Verificar
+        assert len(videos) == 2
+        assert total == 2
+        mock_repository.get_processed_videos.assert_called_once_with(
+            page=1, per_page=10, visit_id=None, client_ids=['client-1', 'client-2'], file_status=None, find=None
+        )
+    
+    @patch('app.services.videos_processed_service.requests.get')
+    def test_get_processed_videos_with_client_name_filter_no_results(self, mock_get, service, mock_repository):
+        """Test obtener videos cuando el filtro por nombre de cliente no encuentra clientes"""
+        # Mock de búsqueda de clientes por nombre - sin resultados
+        mock_response_search = Mock()
+        mock_response_search.status_code = 200
+        mock_response_search.json.return_value = {
+            'data': {
+                'users': []
+            }
+        }
+        mock_get.return_value = mock_response_search
+        
+        # Ejecutar con filtro por nombre de cliente que no existe
+        videos, total = service.get_processed_videos(client_name='Cliente Inexistente')
+        
+        # Verificar que retorna lista vacía sin llamar al repositorio
+        assert len(videos) == 0
+        assert total == 0
+        mock_repository.get_processed_videos.assert_not_called()
+    
+    @patch('app.services.videos_processed_service.requests.get')
+    def test_get_processed_videos_with_file_status_filter(self, mock_get, service, mock_repository, sample_db_clients):
+        """Test obtener videos procesados con filtro por file_status"""
+        # Mock del repositorio - devuelve solo videos procesados
+        mock_repository.get_processed_videos.return_value = (sample_db_clients[:1], 1)
+        
+        # Mock de respuesta del servicio de auth
+        mock_response = Mock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = {
+            'data': {
+                'user': {
+                    'id': 'client-1',
+                    'name': 'Cliente Uno'
+                }
+            }
+        }
+        mock_get.return_value = mock_response
+        
+        # Ejecutar con filtro por file_status
+        videos, total = service.get_processed_videos(file_status='PROCESSED')
+        
+        # Verificar
+        assert len(videos) == 1
+        assert total == 1
+        mock_repository.get_processed_videos.assert_called_once_with(
+            page=1, per_page=10, visit_id=None, client_ids=None, file_status='PROCESSED', find=None
+        )
+    
+    @patch('app.services.videos_processed_service.requests.get')
+    def test_get_processed_videos_with_find_filter(self, mock_get, service, mock_repository, sample_db_clients):
+        """Test obtener videos procesados con filtro por find"""
+        # Mock del repositorio - devuelve solo videos con find
+        mock_repository.get_processed_videos.return_value = (sample_db_clients[:1], 1)
+        
+        # Mock de respuesta del servicio de auth
+        mock_response = Mock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = {
+            'data': {
+                'user': {
+                    'id': 'client-1',
+                    'name': 'Cliente Uno'
+                }
+            }
+        }
+        mock_get.return_value = mock_response
+        
+        # Ejecutar con filtro por find
+        videos, total = service.get_processed_videos(find='Encontrado')
+        
+        # Verificar
+        assert len(videos) == 1
+        assert total == 1
+        mock_repository.get_processed_videos.assert_called_once_with(
+            page=1, per_page=10, visit_id=None, client_ids=None, file_status=None, find='Encontrado'
+        )
+    
+    @patch('app.services.videos_processed_service.requests.get')
+    def test_get_processed_videos_with_multiple_filters(self, mock_get, service, mock_repository, sample_db_clients):
+        """Test obtener videos procesados con múltiples filtros"""
+        # Mock del repositorio
+        mock_repository.get_processed_videos.return_value = (sample_db_clients[:1], 1)
+        
+        # Mock de respuesta del servicio de auth
+        mock_response = Mock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = {
+            'data': {
+                'user': {
+                    'id': 'client-1',
+                    'name': 'Cliente Uno'
+                }
+            }
+        }
+        mock_get.return_value = mock_response
+        
+        # Ejecutar con múltiples filtros
+        videos, total = service.get_processed_videos(
+            visit_id='visit-1',
+            file_status='PROCESSED',
+            find='Encontrado'
+        )
+        
+        # Verificar
+        assert len(videos) == 1
+        assert total == 1
+        mock_repository.get_processed_videos.assert_called_once_with(
+            page=1, per_page=10, visit_id='visit-1', client_ids=None, file_status='PROCESSED', find='Encontrado'
+        )
+    
+    @patch('app.services.videos_processed_service.requests.get')
+    def test_get_client_ids_by_name_success(self, mock_get, service):
+        """Test obtener IDs de clientes por nombre"""
+        mock_response = Mock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = {
+            'data': {
+                'users': [
+                    {'id': 'client-1'},
+                    {'id': 'client-2'}
+                ]
+            }
+        }
+        mock_get.return_value = mock_response
+        
+        client_ids = service._get_client_ids_by_name('Cliente')
+        
+        assert client_ids == ['client-1', 'client-2']
+        mock_get.assert_called_once()
+    
+    @patch('app.services.videos_processed_service.requests.get')
+    def test_get_client_ids_by_name_empty(self, mock_get, service):
+        """Test obtener IDs de clientes cuando no hay resultados"""
+        mock_response = Mock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = {
+            'data': {
+                'users': []
+            }
+        }
+        mock_get.return_value = mock_response
+        
+        client_ids = service._get_client_ids_by_name('Inexistente')
+        
+        assert client_ids == []
+    
+    @patch('app.services.videos_processed_service.requests.get')
+    def test_get_client_ids_by_name_request_exception(self, mock_get, service):
+        """Test obtener IDs de clientes cuando hay excepción"""
+        import requests
+        mock_get.side_effect = requests.exceptions.RequestException("Error de conexión")
+        
+        client_ids = service._get_client_ids_by_name('Cliente')
+        
+        assert client_ids == []
 

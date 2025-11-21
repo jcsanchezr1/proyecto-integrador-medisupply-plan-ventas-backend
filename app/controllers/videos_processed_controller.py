@@ -25,11 +25,17 @@ class VideosProcessedController(BaseController):
     
     @auto_close_session
     def get(self):
-        """GET /videos-processed - Obtener listado de videos procesados con paginación"""
+        """GET /videos-processed - Obtener listado de videos procesados con paginación y filtros"""
         logger.info("GET /videos-processed - Iniciando consulta")
         try:
             page = request.args.get('page', type=int, default=1)
             per_page = request.args.get('per_page', type=int, default=10)
+            
+            # Filtros opcionales
+            visit_id = request.args.get('visit_id', type=str)
+            client_name = request.args.get('client_name', type=str)
+            file_status = request.args.get('file_status', type=str)
+            find = request.args.get('find', type=str)
             
             if page < 1:
                 return self.error_response("Error de validación", "El número de página debe ser mayor a 0", 400)
@@ -39,7 +45,11 @@ class VideosProcessedController(BaseController):
             
             videos, total = self.videos_processed_service.get_processed_videos(
                 page=page,
-                per_page=per_page
+                per_page=per_page,
+                visit_id=visit_id,
+                client_name=client_name,
+                file_status=file_status,
+                find=find
             )
             
             total_pages = (total + per_page - 1) // per_page if per_page > 0 and total > 0 else (1 if total > 0 else 0)

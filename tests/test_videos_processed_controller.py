@@ -236,6 +236,155 @@ class TestVideosProcessedController:
             # Verificar que se llamó con los valores por defecto
             controller.videos_processed_service.get_processed_videos.assert_called_once_with(
                 page=1,
-                per_page=10
+                per_page=10,
+                visit_id=None,
+                client_name=None,
+                file_status=None,
+                find=None
+            )
+    
+    def test_get_with_visit_id_filter(self, app):
+        """Test obtener videos con filtro por visit_id"""
+        with app.test_request_context('?visit_id=visit-1'):
+            controller = VideosProcessedController()
+            
+            mock_videos = [
+                {
+                    'id': 1,
+                    'visit_id': 'visit-1',
+                    'name': 'Cliente Uno',
+                    'file_status': 'PROCESSED',
+                    'find': None,
+                    'filename_url': None,
+                    'filename_url_processed': None
+                }
+            ]
+            
+            controller.videos_processed_service.get_processed_videos = Mock(
+                return_value=(mock_videos, 1)
+            )
+            
+            response, status = controller.get()
+            
+            assert status == 200
+            assert len(response['data']['videos']) == 1
+            controller.videos_processed_service.get_processed_videos.assert_called_once_with(
+                page=1, per_page=10, visit_id='visit-1', client_name=None, file_status=None, find=None
+            )
+    
+    def test_get_with_client_name_filter(self, app):
+        """Test obtener videos con filtro por nombre de cliente"""
+        with app.test_request_context('?client_name=Cliente'):
+            controller = VideosProcessedController()
+            
+            mock_videos = [
+                {
+                    'id': 1,
+                    'visit_id': 'visit-1',
+                    'name': 'Cliente Uno',
+                    'file_status': 'PROCESSED',
+                    'find': None,
+                    'filename_url': None,
+                    'filename_url_processed': None
+                }
+            ]
+            
+            controller.videos_processed_service.get_processed_videos = Mock(
+                return_value=(mock_videos, 1)
+            )
+            
+            response, status = controller.get()
+            
+            assert status == 200
+            assert len(response['data']['videos']) == 1
+            controller.videos_processed_service.get_processed_videos.assert_called_once_with(
+                page=1, per_page=10, visit_id=None, client_name='Cliente', file_status=None, find=None
+            )
+    
+    def test_get_with_file_status_filter(self, app):
+        """Test obtener videos con filtro por file_status"""
+        with app.test_request_context('?file_status=PROCESSED'):
+            controller = VideosProcessedController()
+            
+            mock_videos = [
+                {
+                    'id': 1,
+                    'visit_id': 'visit-1',
+                    'name': 'Cliente Uno',
+                    'file_status': 'PROCESSED',
+                    'find': None,
+                    'filename_url': None,
+                    'filename_url_processed': None
+                }
+            ]
+            
+            controller.videos_processed_service.get_processed_videos = Mock(
+                return_value=(mock_videos, 1)
+            )
+            
+            response, status = controller.get()
+            
+            assert status == 200
+            assert len(response['data']['videos']) == 1
+            controller.videos_processed_service.get_processed_videos.assert_called_once_with(
+                page=1, per_page=10, visit_id=None, client_name=None, file_status='PROCESSED', find=None
+            )
+    
+    def test_get_with_find_filter(self, app):
+        """Test obtener videos con filtro por find"""
+        with app.test_request_context('?find=Encontrado'):
+            controller = VideosProcessedController()
+            
+            mock_videos = [
+                {
+                    'id': 1,
+                    'visit_id': 'visit-1',
+                    'name': 'Cliente Uno',
+                    'file_status': 'PROCESSED',
+                    'find': 'Encontrado',
+                    'filename_url': None,
+                    'filename_url_processed': None
+                }
+            ]
+            
+            controller.videos_processed_service.get_processed_videos = Mock(
+                return_value=(mock_videos, 1)
+            )
+            
+            response, status = controller.get()
+            
+            assert status == 200
+            assert len(response['data']['videos']) == 1
+            controller.videos_processed_service.get_processed_videos.assert_called_once_with(
+                page=1, per_page=10, visit_id=None, client_name=None, file_status=None, find='Encontrado'
+            )
+    
+    def test_get_with_multiple_filters(self, app):
+        """Test obtener videos con múltiples filtros"""
+        with app.test_request_context('?visit_id=visit-1&file_status=PROCESSED&find=Encontrado'):
+            controller = VideosProcessedController()
+            
+            mock_videos = [
+                {
+                    'id': 1,
+                    'visit_id': 'visit-1',
+                    'name': 'Cliente Uno',
+                    'file_status': 'PROCESSED',
+                    'find': 'Encontrado',
+                    'filename_url': None,
+                    'filename_url_processed': None
+                }
+            ]
+            
+            controller.videos_processed_service.get_processed_videos = Mock(
+                return_value=(mock_videos, 1)
+            )
+            
+            response, status = controller.get()
+            
+            assert status == 200
+            assert len(response['data']['videos']) == 1
+            controller.videos_processed_service.get_processed_videos.assert_called_once_with(
+                page=1, per_page=10, visit_id='visit-1', client_name=None, file_status='PROCESSED', find='Encontrado'
             )
 
