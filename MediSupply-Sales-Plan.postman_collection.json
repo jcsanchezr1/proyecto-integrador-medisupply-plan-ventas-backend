@@ -1827,7 +1827,11 @@
 					"script": {
 						"exec": [
 							"pm.environment.set('filter_page', '1');",
-							"pm.environment.set('filter_per_page', '10');"
+							"pm.environment.set('filter_per_page', '10');",
+							"pm.environment.set('filter_visit_id', 'visit-1');",
+							"pm.environment.set('filter_client_name', 'Cliente');",
+							"pm.environment.set('filter_file_status', 'PROCESSED');",
+							"pm.environment.set('filter_find', 'Encontrado');"
 						],
 						"type": "text/javascript",
 						"packages": {},
@@ -1854,24 +1858,22 @@
 							"    pm.expect(response.data.pagination).to.have.property('per_page');",
 							"    pm.expect(response.data.pagination).to.have.property('total');",
 							"});",
-							"pm.test('Items have seller_id field', function () {",
+							"pm.test('Response has videos array', function () {",
 							"    const response = pm.response.json();",
-							"    if (response.data && response.data.items && response.data.items.length > 0) {",
-							"        response.data.items.forEach(item => {",
-							"            pm.expect(item).to.have.property('seller_id');",
-							"            const sellerId = item.seller_id;",
-							"            const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;",
-							"            pm.expect(sellerId).to.match(uuidRegex);",
-							"        });",
-							"    }",
+							"    pm.expect(response.data).to.have.property('videos');",
+							"    pm.expect(response.data.videos).to.be.an('array');",
 							"});",
-							"pm.test('Items match seller_id filter', function () {",
+							"pm.test('Videos have required fields', function () {",
 							"    const response = pm.response.json();",
-							"    const filterSellerId = pm.environment.get('filter_seller_id');",
-							"    if (response.data && response.data.items && response.data.items.length > 0 && filterSellerId) {",
-							"        response.data.items.forEach(item => {",
-							"            pm.expect(item.seller_id).to.eql(filterSellerId);",
-							"        });",
+							"    if (response.data && response.data.videos && response.data.videos.length > 0) {",
+							"        const video = response.data.videos[0];",
+							"        pm.expect(video).to.have.property('id');",
+							"        pm.expect(video).to.have.property('visit_id');",
+							"        pm.expect(video).to.have.property('name');",
+							"        pm.expect(video).to.have.property('file_status');",
+							"        pm.expect(video).to.have.property('find');",
+							"        pm.expect(video).to.have.property('filename_url');",
+							"        pm.expect(video).to.have.property('filename_url_processed');",
 							"    }",
 							"});"
 						],
@@ -1891,7 +1893,7 @@
 					}
 				],
 				"url": {
-					"raw": "{{url_local_autorizador}}/videos-processed?page={{filter_page}}&per_page={{filter_per_page}}",
+					"raw": "{{url_local_autorizador}}/videos-processed?page={{filter_page}}&per_page={{filter_per_page}}&visit_id={{filter_visit_id}}&client_name={{filter_client_name}}&file_status={{filter_file_status}}&find={{filter_find}}",
 					"host": [
 						"{{url_local_autorizador}}"
 					],
@@ -1908,6 +1910,26 @@
 							"key": "per_page",
 							"value": "{{filter_per_page}}",
 							"description": "Resultados por página"
+						},
+						{
+							"key": "visit_id",
+							"value": "{{filter_visit_id}}",
+							"description": "ID de la visita (búsqueda parcial)"
+						},
+						{
+							"key": "client_name",
+							"value": "{{filter_client_name}}",
+							"description": "Nombre del cliente (búsqueda parcial)"
+						},
+						{
+							"key": "file_status",
+							"value": "{{filter_file_status}}",
+							"description": "Estado del archivo (búsqueda parcial)"
+						},
+						{
+							"key": "find",
+							"value": "{{filter_find}}",
+							"description": "Campo find (búsqueda parcial)"
 						}
 					]
 				}
